@@ -1,0 +1,421 @@
+islands:
+  - id: core-shore
+    title: Core Shore
+  - id: generics-grotto
+    title: Generics Grotto
+  - id: collections-forest
+    title: Collections Forest
+  - id: stream-rapids
+    title: Stream Rapids
+  - id: concurrency-citadel
+    title: Concurrency Citadel
+  - id: jvm-depths
+    title: JVM Depths
+  - id: io-harbor
+    title: IO Harbor
+
+topics:
+  - id: core.types
+    title: Primitives, wrappers, autoboxing, Integer cache
+    island: core-shore
+    keyPoints:
+      - Integer cache for -128..127 and what == means on wrappers
+      - Unboxing a null wrapper throws NullPointerException
+      - Implicit widening and compound assignment narrowing (byte b += 1)
+      - Integer overflow and the Math.*Exact methods
+      - double and float precision, NaN comparisons
+
+  - id: core.strings
+    title: String pool, constants, StringBuilder, text blocks
+    island: core-shore
+    prerequisites: [core.types]
+    keyPoints:
+      - Literals and compile-time constants are interned, new String is not
+      - intern() and == versus equals() on strings
+      - String immutability and why concatenation in a loop is slow
+      - StringBuilder versus StringBuffer
+      - Text blocks, indentation stripping and escape sequences
+
+  - id: core.oop
+    title: Init order, overload vs override, hiding
+    island: core-shore
+    keyPoints:
+      - Initialization order - static blocks, instance blocks, field initializers, constructor
+      - Calling an overridable method from a constructor sees default field values
+      - Overloads are chosen at compile time, overrides at run time
+      - Fields and static methods are hidden, not overridden
+      - Access modifiers and covariant return types in overriding
+
+  - id: core.object-contract
+    title: equals, hashCode, toString, compareTo
+    island: core-shore
+    prerequisites: [core.oop, core.types]
+    keyPoints:
+      - equals/hashCode contract and what breaks in HashMap without it
+      - equals must be reflexive, symmetric, transitive and null-safe
+      - compareTo consistent with equals
+      - Default toString and hashCode from Object
+      - Inheritance and equals - getClass versus instanceof
+
+  - id: core.exceptions
+    title: Checked vs unchecked, finally, try-with-resources, suppressed
+    island: core-shore
+    prerequisites: [core.oop]
+    keyPoints:
+      - Checked versus unchecked exceptions and the catch-or-declare rule
+      - A return or throw in finally overrides the try result
+      - try-with-resources closes in reverse order and records suppressed exceptions
+      - Overriding methods and the exceptions they may declare
+      - Multi-catch and rethrowing
+
+  - id: core.nested-classes
+    title: Inner, static nested, local, anonymous, captured variables
+    island: core-shore
+    prerequisites: [core.oop]
+    keyPoints:
+      - Inner classes hold a reference to the outer instance
+      - Static nested class needs no outer instance
+      - Captured local variables must be effectively final
+      - Anonymous classes versus lambdas - this and scope
+      - Creating inner class instances with outer.new Inner()
+
+  - id: core.modern-types
+    title: Records, enums, sealed, pattern matching (21)
+    island: core-shore
+    prerequisites: [core.object-contract]
+    keyPoints:
+      - Record generated members, canonical and compact constructors
+      - Records are shallowly immutable and cannot extend classes
+      - Enum constants, constructors, abstract methods per constant, EnumMap
+      - Sealed hierarchies and exhaustive switch without default
+      - Pattern matching for instanceof and switch, guards and record patterns
+
+  - id: generics.basics
+    title: Type params, generic methods, erasure, raw types, bridges
+    island: generics-grotto
+    prerequisites: [core.oop]
+    keyPoints:
+      - Type erasure and what cannot be done with T at run time
+      - Raw types turn off generic checks and cause heap pollution
+      - Generic methods and type inference
+      - Bridge methods created by the compiler
+      - No generic arrays and no instanceof on parameterized types
+
+  - id: generics.wildcards
+    title: "? extends / ? super, PECS, invariance vs array covariance"
+    island: generics-grotto
+    prerequisites: [generics.basics]
+    keyPoints:
+      - List<Integer> is not a List<Number> but Integer[] is a Number[]
+      - ArrayStoreException from array covariance
+      - Producer extends, consumer super (PECS)
+      - Reading from and writing to a ? extends collection
+      - Wildcard capture
+
+  - id: collections.lists
+    title: ArrayList vs LinkedList, remove(int/Object)
+    island: collections-forest
+    prerequisites: [generics.basics]
+    keyPoints:
+      - remove(int) versus remove(Object) on List<Integer>
+      - ArrayList growth and why LinkedList is rarely faster
+      - Arrays.asList is a fixed-size view over the array
+      - subList is a view of the original list
+      - List.equals and hashCode depend on the elements
+
+  - id: collections.hashing
+    title: HashMap internals, resize, mutable keys
+    island: collections-forest
+    prerequisites: [collections.lists, core.object-contract]
+    keyPoints:
+      - Buckets, hash spreading, treeification of long chains
+      - Resize at load factor 0.75 and capacity as a power of two
+      - Mutable keys get lost after their hashCode changes
+      - HashSet is backed by a HashMap
+      - LinkedHashMap order and access-order mode
+      - Null keys and values in HashMap versus Hashtable
+
+  - id: collections.sorted
+    title: TreeMap/TreeSet, Comparable vs Comparator
+    island: collections-forest
+    prerequisites: [collections.hashing]
+    keyPoints:
+      - TreeMap uses compareTo or the comparator, not equals
+      - Inconsistent compareTo makes elements disappear in a TreeSet
+      - Comparator.comparing, thenComparing and reversed
+      - Navigation methods - floor, ceiling, headMap, tailMap
+      - Comparator subtraction overflow
+
+  - id: collections.iteration
+    title: Iterators, fail-fast, CME, removeIf
+    island: collections-forest
+    prerequisites: [collections.lists]
+    keyPoints:
+      - ConcurrentModificationException in a for-each that removes elements
+      - Iterator.remove and removeIf as safe ways to remove
+      - Fail-fast is best effort and not a guarantee
+      - ListIterator allows add and set while iterating
+      - Removing the second to last element does not throw
+
+  - id: collections.immutable
+    title: List.of, unmodifiable views, nulls in factory methods
+    island: collections-forest
+    prerequisites: [collections.lists]
+    keyPoints:
+      - List.of, Set.of and Map.of reject null
+      - Set.of and Map.of reject duplicates and have unspecified iteration order
+      - Collections.unmodifiableList is a view, List.copyOf is a copy
+      - Immutable collections throw UnsupportedOperationException on change
+      - Immutable is shallow - the elements can still change
+
+  - id: collections.queues
+    title: ArrayDeque, PriorityQueue, Deque as a stack
+    island: collections-forest
+    prerequisites: [collections.sorted]
+    keyPoints:
+      - ArrayDeque instead of Stack and LinkedList
+      - ArrayDeque does not allow null
+      - PriorityQueue iteration order is not sorted order
+      - offer, add, poll, remove, peek and element differ in failure behavior
+      - PriorityQueue is a binary heap with O(log n) insert
+
+  - id: collections.sequenced
+    title: Sequenced collections (21)
+    island: collections-forest
+    prerequisites: [collections.sorted]
+    keyPoints:
+      - SequencedCollection adds getFirst, getLast, addFirst, addLast and reversed
+      - reversed() is a live view
+      - SequencedMap, firstEntry, pollFirstEntry and putFirst
+      - Which standard collections are sequenced and which are not
+
+  - id: functional.lambdas
+    title: Functional interfaces, method refs
+    island: stream-rapids
+    prerequisites: [core.nested-classes, generics.basics]
+    keyPoints:
+      - Functional interface has one abstract method and may have default methods
+      - Four kinds of method references
+      - Lambdas capture effectively final variables
+      - Function, Supplier, Consumer, Predicate and their primitive variants
+      - Lambda this refers to the enclosing instance
+
+  - id: functional.optional
+    title: "Optional: proper use and misuse"
+    island: stream-rapids
+    prerequisites: [functional.lambdas]
+    keyPoints:
+      - orElse evaluates its argument always, orElseGet only when empty
+      - Optional.of(null) throws, ofNullable does not
+      - Optional is for return types, not fields or parameters
+      - get() without isPresent and orElseThrow
+      - map versus flatMap on Optional
+
+  - id: functional.streams
+    title: Laziness, terminal ops, short-circuit
+    island: stream-rapids
+    prerequisites: [functional.lambdas, collections.lists]
+    keyPoints:
+      - Intermediate operations run only when a terminal operation starts
+      - A stream can be consumed only once
+      - Short-circuit operations - findFirst, anyMatch, limit
+      - peek is for debugging and side effects in map are a trap
+      - Primitive streams and boxing cost
+
+  - id: functional.collectors
+    title: groupingBy, toMap duplicates, reduce
+    island: stream-rapids
+    prerequisites: [functional.streams, collections.hashing]
+    keyPoints:
+      - toMap throws IllegalStateException on duplicate keys without a merge function
+      - groupingBy with downstream collectors and a map factory
+      - partitioningBy always has true and false keys
+      - reduce needs an associative function and a real identity
+      - Collectors.toList versus Stream.toList mutability
+
+  - id: functional.parallel-streams
+    title: Common ForkJoinPool, when it is slower
+    island: stream-rapids
+    prerequisites: [functional.collectors, conc.executors]
+    keyPoints:
+      - Parallel streams share the common ForkJoinPool
+      - Overhead makes small or cheap workloads slower
+      - Stateful or non-associative operations give wrong results in parallel
+      - Blocking tasks in a parallel stream starve the common pool
+      - forEach versus forEachOrdered
+
+  - id: conc.threads
+    title: Lifecycle, start vs run, interrupt
+    island: concurrency-citadel
+    prerequisites: [core.exceptions, core.nested-classes]
+    keyPoints:
+      - Calling run() does not start a new thread, start() twice throws
+      - Thread states and transitions
+      - Interrupt sets a flag and blocking methods clear it by throwing
+      - join and daemon threads
+      - Uncaught exceptions kill only their own thread
+
+  - id: conc.synchronization
+    title: synchronized, monitors, wait/notify, deadlock
+    island: concurrency-citadel
+    prerequisites: [conc.threads]
+    keyPoints:
+      - synchronized locks a monitor on an object, static methods lock the Class
+      - Locks are reentrant
+      - wait must be called in a loop while holding the monitor
+      - notify versus notifyAll
+      - Deadlock from inconsistent lock order
+
+  - id: conc.jmm
+    title: Happens-before, volatile, safe publication
+    island: concurrency-citadel
+    prerequisites: [conc.synchronization]
+    keyPoints:
+      - Without happens-before a thread may never see another thread's write
+      - volatile gives visibility and ordering but not atomicity
+      - count++ on a volatile field is a race
+      - Safe publication through final fields, volatile, locks and static init
+      - Double-checked locking needs volatile
+
+  - id: conc.atomics-locks
+    title: CAS, Atomic*, LongAdder, ReentrantLock, ReadWriteLock
+    island: concurrency-citadel
+    prerequisites: [conc.jmm]
+    keyPoints:
+      - Compare-and-set retries instead of blocking
+      - LongAdder scales better than AtomicLong under contention
+      - ReentrantLock needs unlock in finally
+      - tryLock, lockInterruptibly and fairness
+      - ReadWriteLock allows many readers or one writer, no upgrade from read to write
+
+  - id: conc.executors
+    title: ExecutorService, pools, Future, shutdown, rejection
+    island: concurrency-citadel
+    prerequisites: [conc.threads, functional.lambdas]
+    keyPoints:
+      - Fixed, cached and scheduled pools and their queues
+      - shutdown versus shutdownNow
+      - Future.get blocks and wraps task failures in ExecutionException
+      - Rejection policies when the queue is full
+      - submit swallows exceptions that execute would report
+
+  - id: conc.completable-future
+    title: Composition, async variants, exception handling
+    island: concurrency-citadel
+    prerequisites: [conc.executors]
+    keyPoints:
+      - thenApply versus thenCompose versus thenCombine
+      - Async variants run on the common pool unless an executor is passed
+      - exceptionally, handle and whenComplete
+      - join throws CompletionException, get throws ExecutionException
+      - allOf and anyOf
+
+  - id: conc.concurrent-collections
+    title: ConcurrentHashMap, COW lists, BlockingQueue
+    island: concurrency-citadel
+    prerequisites: [conc.atomics-locks, collections.hashing]
+    keyPoints:
+      - ConcurrentHashMap forbids null and offers atomic compute and merge
+      - check-then-put on a concurrent map is still a race, use putIfAbsent
+      - CopyOnWriteArrayList is for rare writes and its iterators are snapshots
+      - BlockingQueue put and take for producer-consumer
+      - Weakly consistent iterators do not throw ConcurrentModificationException
+
+  - id: conc.virtual-threads
+    title: Virtual threads (21), pinning, no pooling
+    island: concurrency-citadel
+    prerequisites: [conc.executors, conc.synchronization]
+    keyPoints:
+      - Virtual threads are cheap, create one per task and do not pool them
+      - Blocking I/O unmounts the virtual thread from its carrier
+      - Pinning inside synchronized blocks with blocking calls
+      - They help I/O-bound work and not CPU-bound work
+      - Executors.newVirtualThreadPerTaskExecutor
+
+  - id: jvm.memory
+    title: Heap, stack, metaspace, SOE vs OOM
+    island: jvm-depths
+    prerequisites: [core.oop]
+    keyPoints:
+      - Objects live on the heap, frames and local variables on the thread stack
+      - StackOverflowError versus OutOfMemoryError and their usual causes
+      - Metaspace holds class metadata outside the heap
+      - Escape of references and memory leaks through static collections
+      - -Xmx and -Xss
+
+  - id: jvm.classloading
+    title: Delegation, class init triggers, static init order
+    island: jvm-depths
+    prerequisites: [jvm.memory, core.exceptions]
+    keyPoints:
+      - Parent-first delegation of class loaders
+      - Class initialization runs once, on first active use
+      - Reading a compile-time constant does not initialize the class
+      - Static initializer failure causes ExceptionInInitializerError and then NoClassDefFoundError
+      - Same class name from two loaders gives two different classes
+
+  - id: jvm.gc
+    title: GC roots, generations, G1/ZGC, references
+    island: jvm-depths
+    prerequisites: [jvm.memory]
+    keyPoints:
+      - Reachability from GC roots decides what is garbage
+      - Generational hypothesis, young and old collections
+      - G1 regions versus ZGC low-pause design
+      - Strong, soft, weak and phantom references
+      - finalize is deprecated, use Cleaner or try-with-resources
+
+  - id: jvm.jit
+    title: Interpreter vs JIT, warm-up, inlining, escape analysis
+    island: jvm-depths
+    prerequisites: [jvm.memory]
+    keyPoints:
+      - Code starts interpreted and hot methods get compiled
+      - Warm-up makes naive benchmarks wrong
+      - Inlining and why small methods are cheap
+      - Escape analysis can remove allocations
+      - Dead code elimination in microbenchmarks, use JMH
+
+  - id: io.streams
+    title: Byte vs char streams, buffering, closing
+    island: io-harbor
+    prerequisites: [core.exceptions]
+    keyPoints:
+      - InputStream and OutputStream for bytes, Reader and Writer for chars
+      - Charset must be explicit, the default differs by platform
+      - Buffered streams reduce system calls
+      - Closing the outer stream closes the inner one
+      - read returns -1 at the end of the stream
+
+  - id: io.nio2
+    title: Path, Files, channels
+    island: io-harbor
+    prerequisites: [io.streams]
+    keyPoints:
+      - Path is immutable and resolve versus relativize
+      - Files.readAllLines versus Files.lines and closing the stream
+      - Files.walk needs closing
+      - Copy and move options and atomic move
+      - Channels and ByteBuffer flip
+
+  - id: io.serialization
+    title: Serializable, serialVersionUID, transient, security risks
+    island: io-harbor
+    prerequisites: [io.streams, core.oop]
+    keyPoints:
+      - Serializable is a marker, transient fields are skipped
+      - serialVersionUID mismatch gives InvalidClassException
+      - Constructors of serializable classes do not run on deserialization
+      - Deserializing untrusted data is a remote code execution risk
+      - Static fields are not serialized
+
+  - id: time.java-time
+    title: LocalDate / Instant / ZonedDateTime, immutability, DST
+    island: io-harbor
+    prerequisites: [core.object-contract]
+    keyPoints:
+      - java.time types are immutable, plus methods return new objects
+      - Instant is a point on the timeline, LocalDateTime has no zone
+      - Duration versus Period
+      - DST gaps and overlaps in ZonedDateTime
+      - DateTimeFormatter is thread-safe, SimpleDateFormat is not

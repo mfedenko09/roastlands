@@ -1,5 +1,9 @@
+import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
 subprojects {
     apply(plugin = "java-library")
+    apply(plugin = "jacoco")
 
     repositories {
         mavenCentral()
@@ -18,5 +22,29 @@ subprojects {
 
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
+    }
+
+    tasks.withType<JacocoReport>().configureEach {
+        dependsOn(tasks.withType<Test>())
+    }
+
+    tasks.withType<JacocoCoverageVerification>().configureEach {
+        dependsOn(tasks.withType<Test>())
+        violationRules {
+            rule {
+                limit {
+                    counter = "LINE"
+                    minimum = "0.90".toBigDecimal()
+                }
+                limit {
+                    counter = "BRANCH"
+                    minimum = "0.90".toBigDecimal()
+                }
+            }
+        }
+    }
+
+    tasks.named("check") {
+        dependsOn(tasks.withType<JacocoReport>(), tasks.withType<JacocoCoverageVerification>())
     }
 }
