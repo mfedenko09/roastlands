@@ -55,3 +55,20 @@ nothing. A file saved by a newer game version is never read or overwritten.
 
 `DailyQueueBuilder` takes new card ids exactly as given. The caller must not pass ids that already have a card
 state, otherwise such a card appears in the queue twice.
+
+## Review session
+
+`ReviewSession` runs one day of play on top of the profile, the content pack and the topic graph:
+
+```java
+ReviewSession session = ReviewSession.start(profile, content, topics, LocalDate.now(), SessionLimits.DEFAULT);
+while (session.current().isPresent()) {
+    AnswerResult result = session.answer(chosen, Confidence.HIGH);   // or answerTrueFalse(...)
+    store.save(session.profile());                                   // the client saves after each answer
+    session.next();
+}
+```
+
+The queue is fixed at start: due cards (oldest first), then new questions from unlocked topics ordered by map
+position, difficulty and id. A topic that opens during the session adds its questions from the next day.
+`markTooEasy()` re-grades the last correct answer as EASY. The class is not thread-safe.
