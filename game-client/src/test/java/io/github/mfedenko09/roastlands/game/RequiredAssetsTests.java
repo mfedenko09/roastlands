@@ -16,7 +16,14 @@ class RequiredAssetsTests {
     void reportsEachMissingFile() {
         List<String> missing = RequiredAssets.missing(path -> !path.endsWith(".obj"));
 
-        assertThat(missing).containsExactly("Models/core-shore.obj");
+        assertThat(missing).containsExactly("Models/core-shore.obj", "Models/character.obj");
+    }
+
+    @Test
+    void reportsTheMissingCharacterModelToo() {
+        List<String> missing = RequiredAssets.missing(path -> !path.startsWith("Models/character"));
+
+        assertThat(missing).containsExactly("Models/character.obj", "Models/character.mtl");
     }
 
     @Test
