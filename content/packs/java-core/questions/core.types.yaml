@@ -1,0 +1,98 @@
+- id: core.types.integer-cache
+  topic: core.types
+  type: CODE_OUTPUT
+  difficulty: 1
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            Integer a = 127, b = 127;
+            Integer c = 128, d = 128;
+            System.out.println(a == b);
+            System.out.println(c == d);
+        }
+    }
+  options:
+    - output: "true\ntrue"
+    - output: "true\nfalse"
+    - output: "false\nfalse"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    Autoboxing calls Integer.valueOf, which must return cached objects for -128..127. 128 is outside the cache,
+    so c and d are two different objects and == compares references.
+  reference: JLS §5.1.7
+
+- id: core.types.byte-plus-one
+  topic: core.types
+  type: CODE_OUTPUT
+  difficulty: 1
+  prompt: What does this code do?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            byte b = 10;
+            b = b + 1;
+            System.out.println(b);
+        }
+    }
+  options:
+    - output: "11"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    b + 1 is an int, and an int cannot be assigned to a byte without a cast. The compound form b += 1 would compile,
+    because it contains an implicit cast back to byte.
+  reference: JLS §15.26.2
+
+- id: core.types.unboxing-null
+  topic: core.types
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code do?
+  code: |
+    import java.util.HashMap;
+    import java.util.Map;
+
+    public class Main {
+        public static void main(String[] args) {
+            Map<String, Integer> stock = new HashMap<>();
+            stock.put("apple", 3);
+            int pears = stock.get("pear");
+            System.out.println(pears);
+        }
+    }
+  options:
+    - output: "0"
+    - output: "null"
+    - exception: java.lang.NullPointerException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    Map.get returns null for a missing key. Assigning it to an int unboxes the Integer, and unboxing null
+    throws NullPointerException. The map does not return 0 for you.
+  reference: JLS §5.1.8
+
+- id: core.types.nan-equality
+  topic: core.types
+  type: CODE_OUTPUT
+  difficulty: 3
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            double nan = 0.0 / 0.0;
+            System.out.println(nan == nan);
+            System.out.println(Double.valueOf(nan).equals(Double.valueOf(nan)));
+        }
+    }
+  options:
+    - output: "true\ntrue"
+    - output: "false\nfalse"
+    - output: "false\ntrue"
+    - exception: java.lang.ArithmeticException
+  correct: 2
+  explanation: >-
+    The == operator follows IEEE 754, so NaN is never equal to anything, even itself. Double.equals compares the
+    bit pattern instead, so it must treat NaN as equal to NaN to keep HashMap and HashSet working.
+  reference: JLS §15.21.1

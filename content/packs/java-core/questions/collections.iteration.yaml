@@ -1,0 +1,91 @@
+- id: collections.iteration.remove-second-to-last
+  topic: collections.iteration
+  type: CODE_OUTPUT
+  difficulty: 3
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>(List.of("a", "b", "c"));
+            for (String name : names) {
+                if (name.equals("b")) {
+                    names.remove(name);
+                }
+            }
+            System.out.println(names);
+        }
+    }
+  options:
+    - output: "[a, c]"
+    - exception: java.util.ConcurrentModificationException
+    - output: "[a, b, c]"
+  correct: 0
+  explanation: >-
+    After removing "b" the size is 2 and the cursor is 2, so hasNext() returns false and the loop ends
+    before next() can check modCount. Removing any other element throws ConcurrentModificationException.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ArrayList.html
+
+- id: collections.iteration.list-iterator-add
+  topic: collections.iteration
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.ListIterator;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> letters = new ArrayList<>(List.of("a", "b"));
+            ListIterator<String> iterator = letters.listIterator();
+            while (iterator.hasNext()) {
+                if (iterator.next().equals("a")) {
+                    iterator.add("x");
+                }
+            }
+            System.out.println(letters);
+        }
+    }
+  options:
+    - output: "[a, x, b]"
+    - output: "[x, a, b]"
+    - output: "[a, b, x]"
+    - exception: java.util.ConcurrentModificationException
+  correct: 0
+  explanation: >-
+    ListIterator.add inserts the element right after the one just returned and keeps the iterator valid, so
+    no ConcurrentModificationException is thrown. The new element is skipped by the next call to next().
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ListIterator.html
+
+- id: collections.iteration.map-remove-while-iterating
+  topic: collections.iteration
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code do?
+  code: |
+    import java.util.HashMap;
+    import java.util.Map;
+
+    public class Main {
+        public static void main(String[] args) {
+            Map<String, Integer> scores = new HashMap<>(Map.of("ann", 1, "bob", 2));
+            for (String name : scores.keySet()) {
+                scores.remove(name);
+            }
+            System.out.println(scores.size());
+        }
+    }
+  options:
+    - output: "0"
+    - output: "1"
+    - exception: java.util.ConcurrentModificationException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    The iterator has already moved to the second entry when the first one is removed. The next call to next()
+    sees that the map was modified outside the iterator and throws ConcurrentModificationException.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html

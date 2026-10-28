@@ -1,0 +1,152 @@
+- id: core.oop.constructor-calls-override
+  topic: core.oop
+  type: CODE_OUTPUT
+  difficulty: 3
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        static class Base {
+            Base() {
+                describe();
+            }
+
+            void describe() {
+                System.out.println("base");
+            }
+        }
+
+        static class Child extends Base {
+            private String name = "child";
+
+            @Override
+            void describe() {
+                System.out.println(name);
+            }
+        }
+
+        public static void main(String[] args) {
+            new Child();
+        }
+    }
+  options:
+    - output: "base"
+    - output: "child"
+    - output: "null"
+    - exception: java.lang.NullPointerException
+  correct: 2
+  explanation: >-
+    The Base constructor runs before the Child field initializers. The call is virtual, so Child.describe runs
+    while name is still null, and println prints null as the text "null".
+  reference: JLS §12.5
+
+- id: core.oop.overload-by-static-type
+  topic: core.oop
+  type: CODE_OUTPUT
+  difficulty: 1
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        static void show(Object value) {
+            System.out.println("object");
+        }
+
+        static void show(String value) {
+            System.out.println("string");
+        }
+
+        public static void main(String[] args) {
+            Object text = "hello";
+            show(text);
+            show("hello");
+        }
+    }
+  options:
+    - output: "string\nstring"
+    - output: "object\nstring"
+    - output: "object\nobject"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    The overload is chosen at compile time from the declared types. The variable text is declared as Object,
+    even though it holds a String at run time.
+  reference: JLS §15.12.2
+
+- id: core.oop.initialization-order
+  topic: core.oop
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        static class Parent {
+            static { System.out.println("parent static"); }
+            { System.out.println("parent instance"); }
+            Parent() { System.out.println("parent constructor"); }
+        }
+
+        static class Child extends Parent {
+            static { System.out.println("child static"); }
+            { System.out.println("child instance"); }
+            Child() { System.out.println("child constructor"); }
+        }
+
+        public static void main(String[] args) {
+            new Child();
+            new Child();
+        }
+    }
+  options:
+    - output: "parent static\nchild static\nparent instance\nparent constructor\nchild instance\n\
+      child constructor\nparent instance\nparent constructor\nchild instance\nchild constructor"
+    - output: "parent static\nparent instance\nparent constructor\nchild static\nchild instance\n\
+      child constructor\nparent static\nparent instance\nparent constructor\nchild static\n\
+      child instance\nchild constructor"
+    - output: "parent static\nchild static\nparent instance\nparent constructor\nchild instance\n\
+      child constructor\nchild instance\nchild constructor"
+    - output: "child static\nparent static\nchild instance\nchild constructor\nparent instance\nparent constructor"
+  correct: 0
+  explanation: >-
+    Static initializers run once, when the class is first initialized, and the superclass goes first. For every
+    new object the superclass instance initializers and constructor run before the subclass ones.
+  reference: JLS §12.5
+
+- id: core.oop.field-hiding
+  topic: core.oop
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        static class Parent {
+            String name = "parent";
+
+            String name() {
+                return "parent";
+            }
+        }
+
+        static class Child extends Parent {
+            String name = "child";
+
+            @Override
+            String name() {
+                return "child";
+            }
+        }
+
+        public static void main(String[] args) {
+            Parent value = new Child();
+            System.out.println(value.name);
+            System.out.println(value.name());
+        }
+    }
+  options:
+    - output: "child\nchild"
+    - output: "parent\nparent"
+    - output: "parent\nchild"
+    - output: "child\nparent"
+  correct: 2
+  explanation: >-
+    Fields are not polymorphic: the field is chosen by the declared type Parent, so value.name is "parent".
+    Methods are overridden and chosen by the real type, so value.name() is "child".
+  reference: JLS §8.3

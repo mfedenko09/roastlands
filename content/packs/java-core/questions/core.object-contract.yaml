@@ -1,0 +1,89 @@
+- id: core.object-contract.equal-hash-codes
+  topic: core.object-contract
+  type: TRUE_FALSE
+  difficulty: 1
+  prompt: >-
+    True or false: if two objects have the same hashCode(), then equals() must return true for them.
+  correct: false
+  explanation: >-
+    The contract only works one way. Equal objects must have equal hash codes, but different objects may share
+    a hash code (a collision). HashMap uses equals to tell them apart inside one bucket.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#hashCode()
+
+- id: core.object-contract.equals-without-hashcode
+  topic: core.object-contract
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.HashSet;
+    import java.util.List;
+    import java.util.Set;
+
+    public class Main {
+        static class Point {
+            private final int x;
+
+            Point(int x) {
+                this.x = x;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other instanceof Point point && point.x == x;
+            }
+        }
+
+        public static void main(String[] args) {
+            List<Point> list = new ArrayList<>(List.of(new Point(1)));
+            Set<Point> set = new HashSet<>(list);
+            System.out.println(list.contains(new Point(1)));
+            System.out.println(set.contains(new Point(1)));
+        }
+    }
+  options:
+    - output: "true\ntrue"
+    - output: "true\nfalse"
+    - output: "false\nfalse"
+    - exception: java.lang.IllegalStateException
+  correct: 1
+  explanation: >-
+    ArrayList.contains uses equals only. HashSet first looks in the bucket given by hashCode, and the default
+    identity hashCode of the new Point differs from the stored one, so equals is never asked.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#hashCode()
+
+- id: core.object-contract.bigdecimal-equals-vs-compareto
+  topic: core.object-contract
+  type: CODE_OUTPUT
+  difficulty: 3
+  prompt: What does this code print?
+  code: |
+    import java.math.BigDecimal;
+    import java.util.HashSet;
+    import java.util.List;
+    import java.util.Set;
+    import java.util.TreeSet;
+
+    public class Main {
+        public static void main(String[] args) {
+            BigDecimal one = new BigDecimal("1.0");
+            BigDecimal oneAgain = new BigDecimal("1.00");
+            System.out.println(one.equals(oneAgain));
+            System.out.println(one.compareTo(oneAgain) == 0);
+            Set<BigDecimal> hashed = new HashSet<>(List.of(one, oneAgain));
+            Set<BigDecimal> sorted = new TreeSet<>(List.of(one, oneAgain));
+            System.out.println(hashed.size() + " " + sorted.size());
+        }
+    }
+  options:
+    - output: "true\ntrue\n1 1"
+    - output: "false\ntrue\n2 1"
+    - output: "false\ntrue\n2 2"
+    - output: "false\nfalse\n2 2"
+  correct: 1
+  explanation: >-
+    BigDecimal.equals also compares the scale, so 1.0 and 1.00 are not equal, but compareTo ignores it.
+    HashSet uses equals and keeps both values, TreeSet uses compareTo and keeps one. The class is not
+    "consistent with equals", which the Javadoc warns about.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html

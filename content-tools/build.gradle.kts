@@ -37,11 +37,21 @@ val verifyTopicMap = tasks.register<JavaExec>("verifyTopicMap") {
     inputs.dir(packsRoot)
 }
 
+val verifyContent = tasks.register<JavaExec>("verifyContent") {
+    group = "verification"
+    description = "Compiles and runs every question snippet and fails when an answer key is wrong"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "io.github.mfedenko09.roastlands.content.ContentCli"
+    javaLauncher = javaToolchains.launcherFor(java.toolchain)
+    args("verify", packsRoot.asFile.path)
+    inputs.dir(packsRoot)
+}
+
 tasks.test {
     inputs.dir(packsRoot)
     inputs.file(topicMapDoc)
 }
 
 tasks.check {
-    dependsOn(verifyTopicMap)
+    dependsOn(verifyTopicMap, verifyContent)
 }

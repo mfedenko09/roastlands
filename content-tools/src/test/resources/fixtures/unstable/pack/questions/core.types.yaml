@@ -1,0 +1,17 @@
+- id: core.types.prints-time
+  topic: core.types
+  type: CODE_OUTPUT
+  difficulty: 1
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            System.out.println(System.nanoTime());
+        }
+    }
+  options:
+    - output: "1"
+    - output: "2"
+  correct: 0
+  explanation: Fixture.
+  reference: JLS §1.1

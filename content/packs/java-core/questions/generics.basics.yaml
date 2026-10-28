@@ -1,0 +1,57 @@
+- id: generics.basics.erasure-same-class
+  topic: generics.basics
+  type: CODE_OUTPUT
+  difficulty: 1
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>();
+            List<Integer> numbers = new ArrayList<>();
+            System.out.println(names.getClass() == numbers.getClass());
+        }
+    }
+  options:
+    - output: "true"
+    - output: "false"
+    - compileError: true
+  correct: 0
+  explanation: >-
+    Type arguments are erased by the compiler. At run time both lists are plain ArrayList objects,
+    so there is only one class.
+  reference: JLS §4.6
+
+- id: generics.basics.heap-pollution
+  topic: generics.basics
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code do?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>();
+            List raw = names;
+            raw.add(42);
+            System.out.println(names.size());
+            String first = names.get(0);
+            System.out.println(first);
+        }
+    }
+  options:
+    - output: "1\n42"
+    - exception: java.lang.ClassCastException
+      output: "1"
+    - exception: java.lang.ArrayStoreException
+    - compileError: true
+  correct: 1
+  explanation: >-
+    The raw type switches off the generic checks, so add(42) is accepted and the list is polluted. The compiler
+    inserts a cast to String at names.get(0), and that cast fails at run time after "1" was printed.
+  reference: JLS §4.12.2

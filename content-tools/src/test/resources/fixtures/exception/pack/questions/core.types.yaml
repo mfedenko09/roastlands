@@ -1,0 +1,23 @@
+- id: core.types.concurrent-modification
+  topic: core.types
+  type: CODE_OUTPUT
+  difficulty: 1
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Integer> numbers = new ArrayList<>(List.of(1, 2, 3));
+            for (Integer number : numbers) {
+                numbers.remove(number);
+            }
+        }
+    }
+  options:
+    - output: "[]"
+    - exception: java.util.ConcurrentModificationException
+  correct: 1
+  explanation: Fixture.
+  reference: JLS §1.1

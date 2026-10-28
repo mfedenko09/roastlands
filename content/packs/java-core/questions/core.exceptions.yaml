@@ -1,0 +1,113 @@
+- id: core.exceptions.return-in-finally
+  topic: core.exceptions
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        static int value() {
+            try {
+                return 1;
+            } finally {
+                return 2;
+            }
+        }
+
+        public static void main(String[] args) {
+            System.out.println(value());
+        }
+    }
+  options:
+    - output: "1"
+    - output: "2"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    A return in finally completes the try statement abruptly and replaces the pending return value 1.
+    It also swallows exceptions, which is why it is a known anti-pattern.
+  reference: JLS §14.20.2
+
+- id: core.exceptions.unreachable-catch
+  topic: core.exceptions
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code do?
+  code: |
+    import java.io.IOException;
+
+    public class Main {
+        public static void main(String[] args) {
+            try {
+                System.out.println("working");
+            } catch (IOException e) {
+                System.out.println("failed");
+            }
+        }
+    }
+  options:
+    - output: "working"
+    - output: "working\nfailed"
+    - compileError: true
+  correct: 2
+  explanation: >-
+    Catching a checked exception that the try block can never throw is a compile-time error. Catching
+    Exception or an unchecked exception is allowed, because they can happen without being declared.
+  reference: JLS §11.2.3
+
+- id: core.exceptions.suppressed-close-failure
+  topic: core.exceptions
+  type: CODE_OUTPUT
+  difficulty: 3
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        static class Resource implements AutoCloseable {
+            private final String name;
+
+            Resource(String name) {
+                this.name = name;
+                System.out.println("open " + name);
+            }
+
+            @Override
+            public void close() {
+                System.out.println("close " + name);
+                throw new IllegalStateException("close " + name);
+            }
+        }
+
+        public static void main(String[] args) {
+            try (Resource a = new Resource("a"); Resource b = new Resource("b")) {
+                throw new RuntimeException("body");
+            } catch (RuntimeException e) {
+                System.out.println(e.getMessage() + " " + e.getSuppressed().length);
+            }
+        }
+    }
+  options:
+    - output: "open a\nopen b\nclose a\nclose b\nbody 2"
+    - output: "open a\nopen b\nclose b\nclose a\nbody 2"
+    - output: "open a\nopen b\nclose b\nclose a\nclose b 0"
+    - output: "open a\nopen b\nclose b\nbody 1"
+  correct: 1
+  explanation: >-
+    Resources are closed in reverse order of creation. The exception from the body stays the main one,
+    and the two exceptions from close() are added to it as suppressed exceptions.
+  reference: JLS §14.20.3
+
+- id: core.exceptions.checked-exceptions
+  topic: core.exceptions
+  type: MULTI_CHOICE
+  difficulty: 1
+  prompt: Which of these exception classes are checked exceptions?
+  options:
+    - java.io.IOException
+    - java.lang.IllegalArgumentException
+    - java.sql.SQLException
+    - java.lang.InterruptedException
+    - java.lang.NullPointerException
+  correct: [0, 2, 3]
+  explanation: >-
+    Checked exceptions extend Exception but not RuntimeException, so the compiler forces you to catch or declare
+    them. IllegalArgumentException and NullPointerException are unchecked.
+  reference: JLS §11.1.1
