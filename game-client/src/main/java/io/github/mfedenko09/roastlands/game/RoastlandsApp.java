@@ -31,6 +31,25 @@ class RoastlandsApp extends SimpleApplication {
         stateManager.attach(player);
     }
 
+    @Override
+    public void loseFocus() {
+        super.loseFocus();
+        releasePlayerKeys();
+    }
+
+    @Override
+    public void gainFocus() {
+        super.gainFocus();
+        releasePlayerKeys();
+    }
+
+    private void releasePlayerKeys() {
+        PlayerState player = stateManager == null ? null : stateManager.getState(PlayerState.class);
+        if (player != null) {
+            player.releaseKeys();
+        }
+    }
+
     private void toggleFullscreen() {
         AppSettings current = context.getSettings();
         if (current.isFullscreen()) {
