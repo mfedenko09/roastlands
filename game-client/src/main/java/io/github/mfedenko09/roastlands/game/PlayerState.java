@@ -6,6 +6,7 @@ import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.input.ChaseCamera;
+import com.jme3.input.InputManager;
 import com.jme3.scene.Node;
 
 class PlayerState extends PhysicsAwareState {
@@ -34,6 +35,7 @@ class PlayerState extends PhysicsAwareState {
         inputBindings.onPlayerAction(this::onAction);
         chaseCamera = new ChaseCamera(app.getCamera(), player, app.getInputManager());
         chaseCamera.setDragToRotate(false);
+        chaseCamera.setInvertVerticalAxis(true);
         chaseCamera.setDefaultDistance(CAMERA_DISTANCE);
         chaseCamera.setMaxDistance(CAMERA_DISTANCE);
         chaseCamera.setMinDistance(CAMERA_DISTANCE);
@@ -56,6 +58,7 @@ class PlayerState extends PhysicsAwareState {
 
     @Override
     public void update(float tpf) {
+        hideCursor();
         Camera camera = getApplication().getCamera();
         Vector3f velocity = MovementCalculator.walkVelocity(camera.getDirection(), camera.getLeft(), input);
         character.setWalkDirection(velocity);
@@ -71,6 +74,17 @@ class PlayerState extends PhysicsAwareState {
     protected void cleanup(Application app) {
         chaseCamera.cleanupWithInput(app.getInputManager());
         player.detachAllChildren();
+    }
+
+    void releaseKeys() {
+        input = MovementInput.NONE;
+    }
+
+    private void hideCursor() {
+        InputManager inputManager = getApplication().getInputManager();
+        if (inputManager.isCursorVisible()) {
+            inputManager.setCursorVisible(false);
+        }
     }
 
     private void onAction(Action action, boolean pressed) {
