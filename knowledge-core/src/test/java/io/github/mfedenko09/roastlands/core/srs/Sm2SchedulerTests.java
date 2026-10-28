@@ -135,6 +135,22 @@ class Sm2SchedulerTests {
         assertThat(card.lapses()).isZero();
     }
 
+    @Test
+    void firstReviewOfNewCardRemembersTheDayAndLaterReviewsKeepIt() {
+        CardState first = scheduler.review(CardState.newCard("c1"), Grade.AGAIN, TODAY);
+        CardState later = scheduler.review(first, Grade.GOOD, TODAY.plusDays(1));
+
+        assertThat(first.firstSeenDate()).isEqualTo(TODAY);
+        assertThat(later.firstSeenDate()).isEqualTo(TODAY);
+    }
+
+    @Test
+    void cardReviewedBeforeFirstSeenDateExistedStaysWithoutOne() {
+        CardState legacy = cardWith(1, 2.5, 1, 0).toBuilder().lastReviewDate(TODAY.minusDays(1)).build();
+
+        assertThat(scheduler.review(legacy, Grade.GOOD, TODAY).firstSeenDate()).isNull();
+    }
+
     private static CardState cardWith(int repetitions, double easeFactor, int intervalDays, int lapses) {
         return CardState.builder()
                 .cardId("c1")

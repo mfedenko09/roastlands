@@ -62,8 +62,10 @@ public final class ReviewSession {
                 .filter(card -> questionsById.containsKey(card.cardId()))
                 .toList();
         List<String> newCandidates = new NewQuestionPicker(topics).candidates(content.questions(), profile);
+        long newToday = knownCards.stream().filter(card -> today.equals(card.firstSeenDate())).count();
+        int newLeftToday = (int) Math.max(0, limits.maxNew() - newToday);
         DailyQueue dailyQueue = new DailyQueueBuilder()
-                .build(knownCards, newCandidates, today, limits.maxReviews(), limits.maxNew());
+                .build(knownCards, newCandidates, today, limits.maxReviews(), newLeftToday);
         List<Question> queue = Stream.concat(dailyQueue.reviewCardIds().stream(), dailyQueue.newCardIds().stream())
                 .map(questionsById::get)
                 .toList();

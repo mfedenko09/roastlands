@@ -62,6 +62,14 @@ public final class TopicGraph {
         return List.copyOf(topicsById.values());
     }
 
+    public Set<String> rootTopicIds() {
+        Set<String> roots = new LinkedHashSet<>();
+        topicsById.values().stream()
+                .filter(topic -> topic.prerequisites().isEmpty())
+                .forEach(topic -> roots.add(topic.id()));
+        return roots;
+    }
+
     public List<Topic> topologicalOrder() {
         return topologicalOrder;
     }

@@ -25,6 +25,13 @@ class TopicGraphTests {
     }
 
     @Test
+    void rootTopicsAreThoseWithoutPrerequisites() {
+        TopicGraph graph = TopicGraph.of(ISLANDS, List.of(topic("c", "b"), topic("b", "a"), topic("d"), topic("a")));
+
+        assertThat(graph.rootTopicIds()).containsExactlyInAnyOrder("a", "d");
+    }
+
+    @Test
     void cycleIsReportedWithItsPath() {
         assertThatThrownBy(() -> TopicGraph.of(ISLANDS, List.of(topic("A", "B"), topic("B", "A"))))
                 .isInstanceOf(InvalidTopicMapException.class)
