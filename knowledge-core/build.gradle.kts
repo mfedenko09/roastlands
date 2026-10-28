@@ -1,5 +1,6 @@
 dependencies {
     implementation(libs.jackson.yaml)
+    implementation(libs.jackson.jsr310)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
