@@ -361,6 +361,64 @@ class ReviewSessionTests {
         assertThat(millis).isLessThan(SLOW_CI_LIMIT_MILLIS);
     }
 
+    @Test
+    void newQuestionsSeenEarlierTodayUseUpTheDailyLimit() {
+        List<Question> questions = IntStream.rangeClosed(1, 8)
+                .mapToObj(n -> question("q-" + n, TYPES, 1)).toList();
+        PlayerProfile profile = profileWith(Set.of(TYPES), firstSeenToday("q-1"), firstSeenToday("q-2"),
+                firstSeenToday("q-3"));
+
+        assertThat(queueIds(profile, questions, SessionLimits.DEFAULT)).containsExactly("q-4", "q-5");
+    }
+
+    @Test
+    void dailyNewLimitReachedMeansEmptyQueue() {
+        List<Question> questions = IntStream.rangeClosed(1, 8)
+                .mapToObj(n -> question("q-" + n, TYPES, 1)).toList();
+        PlayerProfile profile = profileWith(Set.of(TYPES), firstSeenToday("q-1"), firstSeenToday("q-2"),
+                firstSeenToday("q-3"), firstSeenToday("q-4"), firstSeenToday("q-5"), firstSeenToday("q-6"));
+
+        assertThat(start(profile, questions, SessionLimits.DEFAULT).isFinished()).isTrue();
+    }
+
+    @Test
+    void cardsSeenOnEarlierDaysDoNotCountAgainstTodaysNewLimit() {
+        List<Question> questions = IntStream.rangeClosed(1, 8)
+                .mapToObj(n -> question("q-" + n, TYPES, 1)).toList();
+        CardState earlier = reviewedToday("q-1").toBuilder().firstSeenDate(TODAY.minusDays(3)).build();
+
+        assertThat(queueIds(profileWith(Set.of(TYPES), earlier), questions, SessionLimits.DEFAULT))
+                .containsExactly("q-2", "q-3", "q-4", "q-5", "q-6");
+    }
+
+    @Test
+    void answeringNewQuestionsInTwoRunsStopsAtTheDailyLimit() {
+        List<Question> questions = IntStream.rangeClosed(1, 8)
+                .mapToObj(n -> question("q-" + n, TYPES, 1)).toList();
+        ReviewSession first = start(PlayerProfile.empty(Set.of(TYPES)), questions, SessionLimits.DEFAULT);
+        while (first.current().isPresent()) {
+            first.answer(Set.of(1), Confidence.HIGH);
+            first.next();
+        }
+
+        assertThat(start(first.profile(), questions, SessionLimits.DEFAULT).isFinished()).isTrue();
+    }
+
+    @Test
+    void cardWithoutFirstSeenDateReviewedTodayDoesNotUseUpTheDailyLimit() {
+        List<Question> questions = IntStream.rangeClosed(1, 8)
+                .mapToObj(n -> question("q-" + n, TYPES, 1)).toList();
+        CardState legacy = reviewedToday("q-1");
+
+        assertThat(legacy.firstSeenDate()).isNull();
+        assertThat(queueIds(profileWith(Set.of(TYPES), legacy), questions, SessionLimits.DEFAULT))
+                .containsExactly("q-2", "q-3", "q-4", "q-5", "q-6");
+    }
+
+    private static CardState firstSeenToday(String id) {
+        return reviewedToday(id).toBuilder().firstSeenDate(TODAY).build();
+    }
+
     private ReviewSession start(PlayerProfile profile, List<Question> questions, SessionLimits limits) {
         return ReviewSession.start(profile, new ContentPack("test", questions), topics, TODAY, limits);
     }

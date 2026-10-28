@@ -22,9 +22,17 @@ public final class Sm2Scheduler {
                 .easeFactor(nextEaseFactor(state.easeFactor(), quality))
                 .intervalDays(intervalDays)
                 .dueDate(today.plusDays(intervalDays))
+                .firstSeenDate(firstSeenDate(state, today))
                 .lastReviewDate(today)
                 .lapses(failed ? state.lapses() + 1 : state.lapses())
                 .build();
+    }
+
+    private LocalDate firstSeenDate(CardState state, LocalDate today) {
+        if (state.firstSeenDate() != null) {
+            return state.firstSeenDate();
+        }
+        return state.lastReviewDate() == null ? today : null;
     }
 
     private int nextInterval(CardState state) {

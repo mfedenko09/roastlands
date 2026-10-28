@@ -214,6 +214,25 @@ class ProfileStoreTests {
     }
 
     @Test
+    void cardWithoutFirstSeenDateInTheFileLoadsWithNull() throws IOException {
+        Files.writeString(dir.resolve("profile.json"), HAND_WRITTEN);
+
+        CardState card = store(dir).load().profile().cards().get("core.types.integer-cache");
+
+        assertThat(card.firstSeenDate()).isNull();
+    }
+
+    @Test
+    void firstSeenDateIsWrittenAndReadBack() {
+        PlayerProfile profile = profileWithCards("c1");
+
+        store(dir).save(profile);
+
+        assertThat(store(dir).load().profile().cards().get("c1").firstSeenDate())
+                .isEqualTo(LocalDate.of(2026, 10, 30));
+    }
+
+    @Test
     void incompleteOrInconsistentFilesAreTreatedAsBroken() throws IOException {
         List<String> broken = List.of(
                 "{ \"schemaVersion\": 1 }",
@@ -345,6 +364,7 @@ class ProfileStoreTests {
                     .easeFactor(2.5)
                     .intervalDays(6)
                     .dueDate(LocalDate.of(2026, 11, 7))
+                    .firstSeenDate(LocalDate.of(2026, 10, 30))
                     .lastReviewDate(LocalDate.of(2026, 11, 1))
                     .build());
         }

@@ -9,6 +9,7 @@ are about to forget them.
 |---|---|
 | `knowledge-core` | Plain Java engine: SM-2, grading, mastery, daily queue, topic map, question loader, profile store |
 | `content-tools` | Build-time tools for `content/`: topic map check and diagram, compile-and-run answer check |
+| `cli` | Temporary console client: today's session and a mastery report in the terminal |
 
 `knowledge-core` has no game-engine or framework dependencies, so any client can reuse it.
 
@@ -70,5 +71,34 @@ while (session.current().isPresent()) {
 ```
 
 The queue is fixed at start: due cards (oldest first), then new questions from unlocked topics ordered by map
-position, difficulty and id. A topic that opens during the session adds its questions from the next day.
+position, difficulty and id. The limit of new questions is per day: cards first seen today
+(`CardState.firstSeenDate`) are subtracted from it, so a second run on the same day only offers what is left.
+Cards saved before `firstSeenDate` existed have no such date, so they never reduce the daily limit.
+A topic that opens during the session adds its questions at the next start.
 `markTooEasy()` re-grades the last correct answer as EASY. The class is not thread-safe.
+
+## Console client
+
+`cli` runs the daily session in a terminal on the same profile file as the future game.
+
+```bash
+./gradlew :cli:run --args="review"
+./gradlew :cli:run --args="status"
+```
+
+`./gradlew :cli:installDist` builds `cli/build/install/roastlands-cli/bin/roastlands-cli` (and `.bat`) that takes the
+same commands.
+
+| Command | What it does |
+|---|---|
+| `review` | Asks today's questions, with "Sure? (y/n)" after each answer. Saves after every answer |
+| `status` | Prints islands and topics with level, mastery %, locks and `Today done/total` |
+
+| Option | Default |
+|---|---|
+| `--content <dir>` | `content` in the current folder (`:cli:run` starts in the repo root) |
+| `--profile <dir>` | `ProfilePaths.defaultDir()` |
+
+Colors for right and wrong answers are used only when the terminal is interactive and `TERM` or `WT_SESSION` is set.
+
+`ProgressReporter` builds the state report (level, mastery, locks, `Today done/total`) that the clients show.

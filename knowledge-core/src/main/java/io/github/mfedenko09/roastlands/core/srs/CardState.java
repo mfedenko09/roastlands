@@ -10,6 +10,7 @@ public record CardState(
         double easeFactor,
         int intervalDays,
         LocalDate dueDate,
+        LocalDate firstSeenDate,
         LocalDate lastReviewDate,
         int lapses) {
 
