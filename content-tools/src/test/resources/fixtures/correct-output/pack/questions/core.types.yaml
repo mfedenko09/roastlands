@@ -1,0 +1,18 @@
+- id: core.types.two-lines
+  topic: core.types
+  type: CODE_OUTPUT
+  difficulty: 1
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            System.out.println(true);
+            System.out.println(false);
+        }
+    }
+  options:
+    - output: "true\ntrue"
+    - output: "true\nfalse"
+  correct: 1
+  explanation: Fixture.
+  reference: JLS §1.1

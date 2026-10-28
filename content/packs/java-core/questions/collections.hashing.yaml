@@ -1,0 +1,94 @@
+- id: collections.hashing.mutable-key
+  topic: collections.hashing
+  type: CODE_OUTPUT
+  difficulty: 3
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.HashMap;
+    import java.util.List;
+    import java.util.Map;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> key = new ArrayList<>(List.of("a"));
+            Map<List<String>, String> map = new HashMap<>();
+            map.put(key, "value");
+            key.add("b");
+            System.out.println(map.get(key));
+            System.out.println(map.containsKey(List.of("a")));
+            System.out.println(map.size());
+        }
+    }
+  options:
+    - output: "value\nfalse\n1"
+    - output: "null\nfalse\n1"
+    - output: "null\ntrue\n1"
+    - output: "value\ntrue\n1"
+  correct: 1
+  explanation: >-
+    The entry stays in the bucket of the old hash code. Looking up with the changed key uses the new hash code
+    and misses it. Looking up with List.of("a") finds the bucket, but equals fails because the stored key
+    is now [a, b]. The entry is still counted but cannot be found.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Map.html
+
+- id: collections.hashing.linkedhashmap-access-order
+  topic: collections.hashing
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.LinkedHashMap;
+    import java.util.Map;
+
+    public class Main {
+        public static void main(String[] args) {
+            Map<String, Integer> cache = new LinkedHashMap<>(16, 0.75f, true);
+            cache.put("a", 1);
+            cache.put("b", 2);
+            cache.put("c", 3);
+            cache.get("a");
+            System.out.println(cache.keySet());
+        }
+    }
+  options:
+    - output: "[a, b, c]"
+    - output: "[b, c, a]"
+    - output: "[c, b, a]"
+    - output: "[a, c, b]"
+  correct: 1
+  explanation: >-
+    With accessOrder true, every get moves the entry to the end, so the order goes from least to most recently
+    used. This is the base of a simple LRU cache.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/LinkedHashMap.html
+
+- id: collections.hashing.null-key-in-hashtable
+  topic: collections.hashing
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code do?
+  code: |
+    import java.util.HashMap;
+    import java.util.Hashtable;
+    import java.util.Map;
+
+    public class Main {
+        public static void main(String[] args) {
+            Map<String, String> hashMap = new HashMap<>();
+            hashMap.put(null, "x");
+            System.out.println(hashMap.get(null));
+            Map<String, String> hashtable = new Hashtable<>();
+            hashtable.put(null, "x");
+            System.out.println(hashtable.get(null));
+        }
+    }
+  options:
+    - output: "x\nx"
+    - output: "null\nnull"
+    - exception: java.lang.NullPointerException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    HashMap accepts one null key and prints x. Hashtable rejects null keys and null values, so the put on it
+    throws NullPointerException before the second println.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Hashtable.html

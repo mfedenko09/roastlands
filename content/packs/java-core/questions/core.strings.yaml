@@ -1,0 +1,94 @@
+- id: core.strings.literal-identity
+  topic: core.strings
+  type: CODE_OUTPUT
+  difficulty: 1
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            String a = "hi";
+            String b = "hi";
+            String c = new String("hi");
+            System.out.println(a == b);
+            System.out.println(a == c);
+            System.out.println(a == c.intern());
+        }
+    }
+  options:
+    - output: "true\nfalse\ntrue"
+    - output: "true\ntrue\ntrue"
+    - output: "false\nfalse\ntrue"
+    - output: "true\nfalse\nfalse"
+  correct: 0
+  explanation: >-
+    Equal literals share one pooled object. new String("hi") always creates a new object, so == is false.
+    intern() returns the pooled instance, so it is the same object as the literal.
+  reference: JLS §3.10.5
+
+- id: core.strings.constant-folding
+  topic: core.strings
+  type: CODE_OUTPUT
+  difficulty: 3
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            final String finalPart = "a";
+            String plainPart = "a";
+            System.out.println((finalPart + "b") == "ab");
+            System.out.println((plainPart + "b") == "ab");
+        }
+    }
+  options:
+    - output: "true\ntrue"
+    - output: "true\nfalse"
+    - output: "false\nfalse"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    A final String initialized with a literal is a constant variable, so finalPart + "b" is a constant expression
+    that the compiler folds and interns. plainPart is not constant, so its concatenation creates a new String
+    at run time.
+  reference: JLS §15.29
+
+- id: core.strings.text-block-indent
+  topic: core.strings
+  type: CODE_OUTPUT
+  difficulty: 3
+  prompt: What does this code print? The line breaks matter.
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            String block = """
+                    one
+                      two
+                  """;
+            System.out.print(block);
+        }
+    }
+  options:
+    - output: "one\n  two"
+    - output: "  one\n    two"
+    - output: "    one\n      two"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    The compiler removes the smallest indentation found on any content line and on the closing delimiter line.
+    Here the closing delimiter has 14 spaces and the text lines 16 and 18, so 2 and 4 spaces stay.
+  reference: JLS §3.10.6
+
+- id: core.strings.concat-in-loop
+  topic: core.strings
+  type: SINGLE_CHOICE
+  difficulty: 1
+  prompt: Why is building a long text with s += part in a loop slow?
+  options:
+    - Each += creates a new String and copies all characters collected so far
+    - The string pool must be searched for every new value
+    - The JVM runs a garbage collection after every concatenation
+    - String objects are synchronized, so every append takes a lock
+  correct: 0
+  explanation: >-
+    String is immutable, so s += part allocates a new String and copies the old content into it. A loop with n
+    steps copies O(n^2) characters. StringBuilder appends into one growing buffer instead.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html

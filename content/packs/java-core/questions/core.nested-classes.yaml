@@ -1,0 +1,23 @@
+- id: core.nested-classes.captured-variable-changes
+  topic: core.nested-classes
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code do?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            int count = 0;
+            Runnable printer = () -> System.out.println(count);
+            count++;
+            printer.run();
+        }
+    }
+  options:
+    - output: "0"
+    - output: "1"
+    - compileError: true
+  correct: 2
+  explanation: >-
+    A lambda or an inner class can only use local variables that are effectively final. count is changed by
+    count++, so the capture is rejected at compile time. The lambda would copy the value, not share the variable.
+  reference: JLS §15.27.2

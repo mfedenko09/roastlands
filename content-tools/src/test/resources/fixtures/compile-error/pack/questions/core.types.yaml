@@ -1,0 +1,18 @@
+- id: core.types.missing-semicolon
+  topic: core.types
+  type: CODE_OUTPUT
+  difficulty: 1
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            int value = 1
+            System.out.println(value);
+        }
+    }
+  options:
+    - output: "1"
+    - compileError: true
+  correct: 1
+  explanation: Fixture.
+  reference: JLS §1.1

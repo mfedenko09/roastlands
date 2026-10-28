@@ -1,0 +1,56 @@
+- id: collections.lists.remove-index-or-object
+  topic: collections.lists
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Integer> values = new ArrayList<>(List.of(10, 20, 30, 1));
+            values.remove(1);
+            values.remove(Integer.valueOf(1));
+            System.out.println(values);
+        }
+    }
+  options:
+    - output: "[10, 20, 30]"
+    - output: "[10, 30]"
+    - output: "[20, 30]"
+    - output: "[10, 20, 30, 1]"
+  correct: 1
+  explanation: >-
+    remove(1) with an int argument removes the element at index 1, which is 20. remove(Integer.valueOf(1))
+    picks the remove(Object) overload and removes the value 1 from the end.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html
+
+- id: collections.lists.aslist-fixed-size
+  topic: collections.lists
+  type: CODE_OUTPUT
+  difficulty: 2
+  prompt: What does this code do?
+  code: |
+    import java.util.Arrays;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = Arrays.asList("a", "b");
+            names.set(0, "x");
+            System.out.println(names);
+            names.add("c");
+            System.out.println(names);
+        }
+    }
+  options:
+    - output: "[x, b]\n[x, b, c]"
+    - output: "[a, b]\n[a, b, c]"
+    - exception: java.lang.UnsupportedOperationException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    Arrays.asList returns a fixed-size view of the array. set() works and prints [x, b], but add() throws
+    UnsupportedOperationException because the size cannot change.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Arrays.html#asList(T...)
