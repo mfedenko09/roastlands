@@ -11,6 +11,7 @@ import com.jme3.scene.Node;
 
 class PlayerState extends PhysicsAwareState {
 
+    private static final String CHARACTER_MODEL = "Models/character.obj";
     private static final float RADIUS = 0.4f;
     private static final float HEIGHT = 1.8f;
     private static final float MASS = 80f;
@@ -29,7 +30,7 @@ class PlayerState extends PhysicsAwareState {
 
     @Override
     protected void initialize(Application app) {
-        player.attachChild(CharacterModel.build(app.getAssetManager()));
+        player.attachChild(app.getAssetManager().loadModel(CHARACTER_MODEL));
         character.setJumpForce(new Vector3f(0f, JUMP_FORCE, 0f));
         player.addControl(character);
         inputBindings.onPlayerAction(this::onAction);

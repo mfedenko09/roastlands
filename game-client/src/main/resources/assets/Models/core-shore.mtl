@@ -1,9 +1,44 @@
-newmtl crema
-Ka 0.45 0.32 0.20
-Kd 0.78 0.58 0.38
-Ks 0 0 0
-
 newmtl roast
 Ka 0.20 0.12 0.07
 Kd 0.36 0.22 0.13
+Ks 0 0 0
+
+newmtl sand
+Ka 0.47 0.40 0.29
+Kd 0.86 0.73 0.52
+Ks 0 0 0
+
+newmtl crema
+Ka 0.43 0.32 0.21
+Kd 0.78 0.58 0.38
+Ks 0 0 0
+
+newmtl stone
+Ka 0.30 0.28 0.25
+Kd 0.55 0.50 0.45
+Ks 0 0 0
+
+newmtl leaf
+Ka 0.25 0.28 0.12
+Kd 0.45 0.50 0.22
+Ks 0 0 0
+
+newmtl leaf2
+Ka 0.21 0.24 0.10
+Kd 0.38 0.43 0.18
+Ks 0 0 0
+
+newmtl bark
+Ka 0.17 0.10 0.06
+Kd 0.30 0.18 0.10
+Ks 0 0 0
+
+newmtl roof
+Ka 0.25 0.11 0.07
+Kd 0.45 0.20 0.12
+Ks 0 0 0
+
+newmtl wall
+Ka 0.51 0.46 0.39
+Kd 0.92 0.84 0.70
 Ks 0 0 0
