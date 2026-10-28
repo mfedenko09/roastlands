@@ -3,6 +3,8 @@ junit = "5.14.4"
 assertj = "3.27.7"
 lombok = "1.18.48"
 jackson = "2.19.2"
+jme = "3.9.0-stable"
+minie = "9.0.3"
 
 [libraries]
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -12,3 +14,8 @@ assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 jackson-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
 jackson-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
+jme-core = { module = "org.jmonkeyengine:jme3-core", version.ref = "jme" }
+jme-desktop = { module = "org.jmonkeyengine:jme3-desktop", version.ref = "jme" }
+jme-lwjgl3 = { module = "org.jmonkeyengine:jme3-lwjgl3", version.ref = "jme" }
+jme-plugins = { module = "org.jmonkeyengine:jme3-plugins", version.ref = "jme" }
+minie = { module = "com.github.stephengold:Minie", version.ref = "minie" }

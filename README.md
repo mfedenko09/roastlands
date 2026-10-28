@@ -10,6 +10,7 @@ are about to forget them.
 | `knowledge-core` | Plain Java engine: SM-2, grading, mastery, daily queue, topic map, question loader, profile store |
 | `content-tools` | Build-time tools for `content/`: topic map check and diagram, compile-and-run answer check |
 | `cli` | Temporary console client: today's session and a mastery report in the terminal |
+| `game-client` | jMonkeyEngine client: walk around the Core Shore island. Rendering, input and physics only |
 
 `knowledge-core` has no game-engine or framework dependencies, so any client can reuse it.
 
@@ -21,6 +22,16 @@ and an opened topic never closes again. The map is shown in [docs/topic-map.md](
 
 Questions live in `content/packs/<pack>/questions/`, one file per topic. The format is described in
 [content/README.md](content/README.md).
+
+## Play
+
+```bash
+./gradlew :game-client:run          # Windows: gradlew.bat :game-client:run
+```
+
+WASD walks, Shift runs, Space jumps, the mouse turns the camera, F11 toggles fullscreen. Falling below y = -20 puts
+the character back at the spawn point. Rendering is not tested in CI; only the pure logic (movement, respawn,
+required-file check) is.
 
 ## Build
 
