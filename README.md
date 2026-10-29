@@ -10,7 +10,7 @@ are about to forget them.
 | `knowledge-core` | Plain Java engine: SM-2, grading, mastery, daily queue, topic map, question loader, profile store |
 | `content-tools` | Build-time tools for `content/`: topic map check and diagram, compile-and-run answer check |
 | `cli` | Temporary console client: today's session and a mastery report in the terminal |
-| `game-client` | jMonkeyEngine client: walk around the Core Shore island. Rendering, input and physics only |
+| `game-client` | jMonkeyEngine client: walk around the Core Shore island, answer questions at the terminal (Lemur UI) |
 
 `knowledge-core` has no game-engine or framework dependencies, so any client can reuse it.
 
@@ -29,9 +29,17 @@ Questions live in `content/packs/<pack>/questions/`, one file per topic. The for
 ./gradlew :game-client:run          # Windows: gradlew.bat :game-client:run
 ```
 
-WASD walks, Shift runs, Space jumps, the mouse turns the camera, F11 toggles fullscreen. Falling below y = -20 puts
-the character back at the spawn point. Rendering is not tested in CI; only the pure logic (movement, respawn,
-required-file check) is.
+WASD walks, Shift runs, Space jumps, the mouse turns the camera, F11 toggles fullscreen, Esc quits. Falling below
+y = -20 puts the character back at the spawn point.
+
+Walk to the terminal (the cyan screen east of the spawn point) and press E within 2 m to open today's questions.
+The character stops and the mouse cursor shows. Keys: 1-5 choose an option (checkboxes on multi-choice, Enter
+submits), S "Sure" / N "Not sure", Enter next, Up/Down or mouse wheel scroll long code, Esc closes the panel and keeps
+the session in memory. Progress is saved after every answer; a failed save shows a red "Progress not saved" line.
+The game reads `content/` from the repo root (`:game-client:run` starts there) and the profile from
+`ProfilePaths.defaultDir()`. Override with `-Droastlands.content=<dir>` and `-Droastlands.profile=<dir>`.
+
+Rendering is not tested in CI; only the pure logic (movement, respawn, required-file check, question flow) is.
 
 ## Build
 
@@ -113,3 +121,9 @@ same commands.
 Colors for right and wrong answers are used only when the terminal is interactive and `TERM` or `WT_SESSION` is set.
 
 `ProgressReporter` builds the state report (level, mastery, locks, `Today done/total`) that the clients show.
+
+## Fonts
+
+Code in the question panel uses a bitmap font generated from JetBrains Mono Regular at 18 px
+(`assets/Interface/Fonts/JetBrainsMono-18.*`). JetBrains Mono is licensed under the SIL Open Font License 1.1, see
+`JetBrainsMono-OFL.txt` next to the font.

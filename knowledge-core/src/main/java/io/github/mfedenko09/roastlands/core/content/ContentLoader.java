@@ -1,8 +1,5 @@
-package io.github.mfedenko09.roastlands.cli;
+package io.github.mfedenko09.roastlands.core.content;
 
-import io.github.mfedenko09.roastlands.core.content.ContentPack;
-import io.github.mfedenko09.roastlands.core.content.ContentPackLoader;
-import io.github.mfedenko09.roastlands.core.content.InvalidContentException;
 import io.github.mfedenko09.roastlands.core.topic.TopicGraph;
 import io.github.mfedenko09.roastlands.core.topic.TopicMapLoader;
 import java.io.IOException;
@@ -12,13 +9,13 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
-final class ContentLoader {
+public final class ContentLoader {
 
     private static final String PACKS_DIR = "packs";
     private static final String PACK_FILE = "pack.yaml";
     private static final String PACK_ID_SEPARATOR = "+";
 
-    GameContent load(Path contentDir) {
+    public GameContent load(Path contentDir) {
         Path packsRoot = contentDir.resolve(PACKS_DIR);
         requirePacksFolder(packsRoot);
         TopicGraph topics = new TopicMapLoader().load(packsRoot);

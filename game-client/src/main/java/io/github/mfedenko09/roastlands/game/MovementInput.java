@@ -11,7 +11,7 @@ record MovementInput(boolean forward, boolean back, boolean left, boolean right,
             case LEFT -> new MovementInput(forward, back, pressed, right, run);
             case RIGHT -> new MovementInput(forward, back, left, pressed, run);
             case RUN -> new MovementInput(forward, back, left, right, pressed);
-            case JUMP, FULLSCREEN -> this;
+            default -> this;
         };
     }
 }
