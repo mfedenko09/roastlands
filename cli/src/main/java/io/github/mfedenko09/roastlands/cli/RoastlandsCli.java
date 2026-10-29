@@ -1,5 +1,7 @@
 package io.github.mfedenko09.roastlands.cli;
 
+import io.github.mfedenko09.roastlands.core.content.ContentLoader;
+import io.github.mfedenko09.roastlands.core.content.GameContent;
 import io.github.mfedenko09.roastlands.core.content.InvalidContentException;
 import io.github.mfedenko09.roastlands.core.profile.ProfileCorruptedException;
 import io.github.mfedenko09.roastlands.core.profile.ProfileStore;

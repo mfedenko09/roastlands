@@ -1,6 +1,7 @@
 package io.github.mfedenko09.roastlands.cli;
 
 import io.github.mfedenko09.roastlands.core.answer.Confidence;
+import io.github.mfedenko09.roastlands.core.content.GameContent;
 import io.github.mfedenko09.roastlands.core.content.Question;
 import io.github.mfedenko09.roastlands.core.content.QuestionType;
 import io.github.mfedenko09.roastlands.core.profile.LoadResult;

@@ -9,6 +9,7 @@ dependencies {
     implementation(libs.jme.lwjgl3)
     implementation(libs.jme.plugins)
     implementation(libs.minie)
+    implementation(libs.lemur)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
@@ -26,7 +27,7 @@ application {
 
 val renderingClasses = listOf(
     "Roastlands", "RoastlandsApp", "IslandState", "PlayerState", "PhysicsAwareState", "InputBindings",
-    "StartupErrorDialog",
+    "StartupErrorDialog", "Widgets", "QuestionPanelState", "TerminalState",
 ).flatMap { name ->
     val path = "io/github/mfedenko09/roastlands/game/$name"
     listOf("$path.class", "$path$*.class")
@@ -40,4 +41,8 @@ tasks.jacocoTestReport {
 
 tasks.jacocoTestCoverageVerification {
     classDirectories.setFrom(testableClasses)
+}
+
+tasks.named<JavaExec>("run") {
+    workingDir = rootProject.projectDir
 }

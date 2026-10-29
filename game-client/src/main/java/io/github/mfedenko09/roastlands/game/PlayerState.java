@@ -23,6 +23,7 @@ class PlayerState extends PhysicsAwareState {
     private final BetterCharacterControl character = new BetterCharacterControl(RADIUS, HEIGHT, MASS);
     private MovementInput input = MovementInput.NONE;
     private ChaseCamera chaseCamera;
+    private boolean frozen;
 
     PlayerState(InputBindings inputBindings) {
         this.inputBindings = inputBindings;
@@ -59,6 +60,9 @@ class PlayerState extends PhysicsAwareState {
 
     @Override
     public void update(float tpf) {
+        if (frozen) {
+            return;
+        }
         hideCursor();
         Camera camera = getApplication().getCamera();
         Vector3f velocity = MovementCalculator.walkVelocity(camera.getDirection(), camera.getLeft(), input);
@@ -77,6 +81,18 @@ class PlayerState extends PhysicsAwareState {
         player.detachAllChildren();
     }
 
+    Vector3f position() {
+        return player.getWorldTranslation();
+    }
+
+    void setFrozen(boolean frozen) {
+        this.frozen = frozen;
+        input = MovementInput.NONE;
+        character.setWalkDirection(Vector3f.ZERO);
+        chaseCamera.setEnabled(!frozen);
+        getApplication().getInputManager().setCursorVisible(frozen);
+    }
+
     void releaseKeys() {
         input = MovementInput.NONE;
     }
@@ -89,6 +105,9 @@ class PlayerState extends PhysicsAwareState {
     }
 
     private void onAction(Action action, boolean pressed) {
+        if (frozen) {
+            return;
+        }
         if (action == Action.JUMP) {
             if (pressed) {
                 character.jump();

@@ -6,7 +6,8 @@ import java.util.function.Predicate;
 final class RequiredAssets {
 
     static final List<String> PATHS = List.of(
-            "Models/core-shore.obj", "Models/core-shore.mtl", "Models/character.obj", "Models/character.mtl");
+            "Models/core-shore.obj", "Models/core-shore.mtl", "Models/character.obj", "Models/character.mtl",
+            "Interface/Fonts/JetBrainsMono-18.fnt", "Interface/Fonts/JetBrainsMono-18.png");
 
     private RequiredAssets() {
     }

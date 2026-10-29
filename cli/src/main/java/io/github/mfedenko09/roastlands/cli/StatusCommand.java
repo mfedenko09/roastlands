@@ -1,5 +1,6 @@
 package io.github.mfedenko09.roastlands.cli;
 
+import io.github.mfedenko09.roastlands.core.content.GameContent;
 import io.github.mfedenko09.roastlands.core.profile.ProfileStore;
 import io.github.mfedenko09.roastlands.core.session.ProgressReport;
 import io.github.mfedenko09.roastlands.core.session.ProgressReporter;
