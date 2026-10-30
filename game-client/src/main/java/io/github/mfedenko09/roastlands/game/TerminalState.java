@@ -61,7 +61,7 @@ class TerminalState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
-        boolean show = isNearTerminal() && !panel.isEnabled();
+        boolean show = canInteract();
         if (show && hint.getParent() == null) {
             ((SimpleApplication) getApplication()).getGuiNode().attachChild(hint);
         } else if (!show) {
@@ -75,14 +75,14 @@ class TerminalState extends BaseAppState {
     }
 
     private void interact() {
-        if (isEnabled() && isNearTerminal() && !panel.isEnabled()) {
+        if (isEnabled() && canInteract()) {
             panel.open();
         }
     }
 
-    private boolean isNearTerminal() {
-        Vector3f player = getStateManager().getState(PlayerState.class).position();
-        return TerminalZone.contains(terminal.getWorldTranslation(), player);
+    private boolean canInteract() {
+        PlayerState player = getStateManager().getState(PlayerState.class);
+        return !player.isFrozen() && TerminalZone.contains(terminal.getWorldTranslation(), player.position());
     }
 
     private static Geometry block(Application app, Vector3f halfExtents, ColorRGBA color, float centerY) {

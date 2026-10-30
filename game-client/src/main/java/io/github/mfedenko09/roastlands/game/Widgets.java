@@ -6,9 +6,15 @@ import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Insets3f;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
+import io.github.mfedenko09.roastlands.core.mastery.MasteryLevel;
 
 final class Widgets {
 
+    static final String MONO_FONT = "Interface/Fonts/JetBrainsMono-18.fnt";
+    static final float PANEL_WIDTH = 1000f;
+    static final float CONTENT_WIDTH = PANEL_WIDTH - 40f;
+    static final String LOCK_ICON = "Interface/Icons/lock.png";
+    static final String CHECK_ICON = "Interface/Icons/check.png";
     static final ColorRGBA TEXT = ColorRGBA.White;
     static final ColorRGBA MUTED = new ColorRGBA(0.7f, 0.75f, 0.8f, 1f);
     static final ColorRGBA PANEL = new ColorRGBA(0.08f, 0.1f, 0.14f, 0.94f);
@@ -21,6 +27,10 @@ final class Widgets {
 
     private static final float TEXT_SIZE = 20f;
     private static final float CODE_SIZE = 18f;
+    private static final float ROW_SIZE = 15f;
+    private static final ColorRGBA RUST = new ColorRGBA(0.9f, 0.5f, 0.25f, 1f);
+    private static final ColorRGBA AMBER = new ColorRGBA(0.95f, 0.8f, 0.3f, 1f);
+    private static final ColorRGBA MINT = new ColorRGBA(0.4f, 0.9f, 0.55f, 1f);
     private static final Insets3f BUTTON_INSETS = new Insets3f(5f, 10f, 5f, 10f);
     private static final Insets3f CODE_INSETS = new Insets3f(6f, 10f, 6f, 10f);
 
@@ -33,6 +43,15 @@ final class Widgets {
             case WRONG_CHOSEN -> WRONG;
             case CHOSEN -> CHOSEN;
             case NEUTRAL -> OPTION;
+        };
+    }
+
+    static ColorRGBA colorOf(MasteryLevel level) {
+        return switch (level) {
+            case NEW -> MUTED;
+            case RUSTY -> RUST;
+            case WARM -> AMBER;
+            case SHARP -> MINT;
         };
     }
 
@@ -51,6 +70,14 @@ final class Widgets {
         label.setColor(TEXT);
         label.setBackground(new QuadBackgroundComponent(CODE_BACKGROUND));
         label.setInsets(CODE_INSETS);
+        return label;
+    }
+
+    static Label row(String text, ColorRGBA color, BitmapFont monoFont) {
+        Label label = new Label(text);
+        label.setFont(monoFont);
+        label.setFontSize(ROW_SIZE);
+        label.setColor(color);
         return label;
     }
 

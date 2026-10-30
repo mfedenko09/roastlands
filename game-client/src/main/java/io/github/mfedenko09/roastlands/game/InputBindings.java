@@ -20,6 +20,7 @@ class InputBindings {
             Map.entry(Action.JUMP, KeyInput.KEY_SPACE),
             Map.entry(Action.FULLSCREEN, KeyInput.KEY_F11),
             Map.entry(Action.INTERACT, KeyInput.KEY_E),
+            Map.entry(Action.MAP, KeyInput.KEY_M),
             Map.entry(Action.OPTION_1, KeyInput.KEY_1),
             Map.entry(Action.OPTION_2, KeyInput.KEY_2),
             Map.entry(Action.OPTION_3, KeyInput.KEY_3),

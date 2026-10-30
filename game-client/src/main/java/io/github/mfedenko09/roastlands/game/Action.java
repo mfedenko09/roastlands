@@ -13,6 +13,7 @@ enum Action {
     JUMP,
     FULLSCREEN,
     INTERACT,
+    MAP,
     OPTION_1,
     OPTION_2,
     OPTION_3,

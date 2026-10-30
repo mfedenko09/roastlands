@@ -13,10 +13,10 @@ class RoastlandsApp extends SimpleApplication {
 
     private static final String ASSET_ROOT = "/assets";
 
-    private final PanelFlow flow;
+    private final GameSession game;
 
-    RoastlandsApp(PanelFlow flow) {
-        this.flow = flow;
+    RoastlandsApp(GameSession game) {
+        this.game = game;
         setShowSettings(false);
         setDisplayFps(false);
         setDisplayStatView(false);
@@ -33,19 +33,31 @@ class RoastlandsApp extends SimpleApplication {
         InputBindings inputBindings = new InputBindings(inputManager);
         PlayerState player = new PlayerState(inputBindings);
         inputBindings.onAction(Action.FULLSCREEN, this::toggleFullscreen);
-        QuestionPanelState panel = new QuestionPanelState(flow, inputBindings);
-        inputBindings.onAction(Action.CANCEL, () -> cancel(panel));
+        QuestionPanelState panel = new QuestionPanelState(game.flow(), inputBindings);
+        ProgressMapState map = new ProgressMapState(game, inputBindings);
+        inputBindings.onAction(Action.CANCEL, () -> cancel(panel, map));
+        inputBindings.onAction(Action.MAP, () -> toggleMap(panel, map));
         stateManager.attach(new IslandState());
         stateManager.attach(player);
         stateManager.attach(new TerminalState(inputBindings, panel));
         stateManager.attach(panel);
+        stateManager.attach(map);
+        stateManager.attach(new HudState(game));
     }
 
-    private void cancel(QuestionPanelState panel) {
+    private void cancel(QuestionPanelState panel, ProgressMapState map) {
         if (panel.isEnabled()) {
             panel.close();
+        } else if (map.isEnabled()) {
+            map.close();
         } else {
             stop();
+        }
+    }
+
+    private void toggleMap(QuestionPanelState panel, ProgressMapState map) {
+        if (!panel.isEnabled()) {
+            map.toggle();
         }
     }
 
