@@ -7,12 +7,14 @@ final class CodeWindow {
     private static final String TAB_AS_SPACES = "    ";
 
     private final List<String> lines;
-    private final int visibleCount;
+    private final int minVisibleCount;
+    private int visibleCount;
     private int firstLine;
 
-    CodeWindow(String code, int visibleCount) {
+    CodeWindow(String code, int minVisibleCount) {
         this.lines = code == null ? List.of() : code.stripTrailing().replace("\t", TAB_AS_SPACES).lines().toList();
-        this.visibleCount = visibleCount;
+        this.minVisibleCount = minVisibleCount;
+        this.visibleCount = minVisibleCount;
     }
 
     List<String> visibleLines() {
@@ -38,5 +40,11 @@ final class CodeWindow {
     void scroll(int delta) {
         int maxFirstLine = Math.max(0, lines.size() - visibleCount);
         firstLine = Math.max(0, Math.min(maxFirstLine, firstLine + delta));
+    }
+
+    void fitInto(float freeHeight, float lineHeight) {
+        int spareLines = (int) Math.floor(freeHeight / lineHeight);
+        visibleCount = Math.max(minVisibleCount, visibleLines().size() + spareLines);
+        scroll(0);
     }
 }

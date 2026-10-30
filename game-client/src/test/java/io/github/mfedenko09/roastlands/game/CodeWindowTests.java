@@ -45,4 +45,55 @@ class CodeWindowTests {
 
         assertThat(window.visibleLines()).containsExactly("a");
     }
+
+    @Test
+    void freeHeightShowsTheWholeCodeWithoutScrolling() {
+        CodeWindow window = new CodeWindow(FIVE_LINES, 3);
+
+        window.fitInto(60f, 27f);
+
+        assertThat(window.visibleLines()).containsExactly("l1", "l2", "l3", "l4", "l5");
+        assertThat(window.isScrollable()).isFalse();
+    }
+
+    @Test
+    void lessFreeHeightShowsOnlyTheLinesThatFit() {
+        CodeWindow window = new CodeWindow(FIVE_LINES, 2);
+
+        window.fitInto(27f, 27f);
+
+        assertThat(window.visibleLines()).containsExactly("l1", "l2", "l3");
+    }
+
+    @Test
+    void missingHeightNeverGoesBelowTheMinimumLines() {
+        CodeWindow window = new CodeWindow(FIVE_LINES, 3);
+        window.fitInto(100f, 27f);
+
+        window.fitInto(-500f, 27f);
+
+        assertThat(window.visibleLines()).containsExactly("l1", "l2", "l3");
+    }
+
+    @Test
+    void shrinkingKeepsTheScrollInsideTheCode() {
+        CodeWindow window = new CodeWindow(FIVE_LINES, 2);
+        window.scroll(10);
+
+        window.fitInto(27f, 27f);
+
+        assertThat(window.firstLineNumber()).isEqualTo(3);
+        assertThat(window.lastLineNumber()).isEqualTo(5);
+    }
+
+    @Test
+    void growingAfterAScrollKeepsTheLastLineInView() {
+        CodeWindow window = new CodeWindow(FIVE_LINES, 3);
+        window.scroll(10);
+
+        window.fitInto(1000f, 27f);
+
+        assertThat(window.firstLineNumber()).isEqualTo(1);
+        assertThat(window.lastLineNumber()).isEqualTo(5);
+    }
 }
