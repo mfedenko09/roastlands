@@ -20,7 +20,7 @@ class RoastlandsApp extends SimpleApplication {
         setShowSettings(false);
         setDisplayFps(false);
         setDisplayStatView(false);
-        setSettings(DisplaySettings.windowed());
+        setSettings(fullscreenSettings());
     }
 
     @Override
@@ -86,9 +86,13 @@ class RoastlandsApp extends SimpleApplication {
             restartWith(DisplaySettings.windowed());
             return;
         }
+        restartWith(fullscreenSettings());
+    }
+
+    private static AppSettings fullscreenSettings() {
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         DisplayMode screen = device.getDisplayMode();
-        restartWith(DisplaySettings.fullscreen(screen.getWidth(), screen.getHeight()));
+        return DisplaySettings.fullscreen(screen.getWidth(), screen.getHeight());
     }
 
     private void restartWith(AppSettings settings) {

@@ -29,8 +29,8 @@ Questions live in `content/packs/<pack>/questions/`, one file per topic. The for
 ./gradlew :game-client:run          # Windows: gradlew.bat :game-client:run
 ```
 
-WASD walks, Shift runs, Space jumps, the mouse turns the camera, F11 toggles fullscreen, Esc quits. Falling below
-y = -20 puts the character back at the spawn point.
+The game starts in fullscreen. WASD walks, Shift runs, Space jumps, the mouse turns the camera, F11 switches between
+fullscreen and a window, Esc quits. Falling below y = -20 puts the character back at the spawn point.
 
 Walk to the terminal (the cyan screen east of the spawn point) and press E within 2 m to open today's questions.
 The character stops and the mouse cursor shows. Keys: 1-5 choose an option (checkboxes on multi-choice, Enter

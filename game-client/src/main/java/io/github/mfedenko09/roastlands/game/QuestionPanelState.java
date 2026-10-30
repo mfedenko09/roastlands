@@ -28,6 +28,7 @@ class QuestionPanelState extends BaseAppState {
     private static final String WHEEL_UP = "PANEL_WHEEL_UP";
     private static final String WHEEL_DOWN = "PANEL_WHEEL_DOWN";
     private static final float TOP_MARGIN = 12f;
+    private static final float HALF_ROW_WIDTH = CONTENT_WIDTH / 2f - 10f;
     private static final int VISIBLE_CODE_LINES = 10;
     private static final Insets3f PANEL_INSETS = new Insets3f(10f, 20f, 10f, 20f);
 
@@ -191,8 +192,8 @@ class QuestionPanelState extends BaseAppState {
         root.addChild(Widgets.text("How sure are you?", Widgets.TEXT, CONTENT_WIDTH));
         Container row = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.None, FillMode.None));
         row.setBackground(null);
-        row.addChild(Widgets.button("Sure (S)", Widgets.RIGHT, CONTENT_WIDTH, answering(Confidence.HIGH)));
-        row.addChild(Widgets.button("Not sure (N)", Widgets.OPTION, CONTENT_WIDTH, answering(Confidence.LOW)));
+        row.addChild(Widgets.button("Sure (S)", Widgets.RIGHT, HALF_ROW_WIDTH, answering(Confidence.HIGH)));
+        row.addChild(Widgets.button("Not sure (N)", Widgets.OPTION, HALF_ROW_WIDTH, answering(Confidence.LOW)));
         root.addChild(row);
     }
 
@@ -215,9 +216,9 @@ class QuestionPanelState extends BaseAppState {
         }
         Container row = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.None, FillMode.None));
         row.setBackground(null);
-        row.addChild(Widgets.button("Next (Enter)", Widgets.CHOSEN, CONTENT_WIDTH, () -> apply(flow::confirm)));
+        row.addChild(Widgets.button("Next (Enter)", Widgets.CHOSEN, HALF_ROW_WIDTH, () -> apply(flow::confirm)));
         if (flow.canMarkTooEasy()) {
-            row.addChild(Widgets.button("Too easy", Widgets.OPTION, CONTENT_WIDTH, () -> apply(flow::markTooEasy)));
+            row.addChild(Widgets.button("Too easy", Widgets.OPTION, HALF_ROW_WIDTH, () -> apply(flow::markTooEasy)));
         }
         root.addChild(row);
     }
