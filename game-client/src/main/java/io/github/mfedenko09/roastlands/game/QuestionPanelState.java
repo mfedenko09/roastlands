@@ -29,7 +29,9 @@ class QuestionPanelState extends BaseAppState {
     private static final String WHEEL_DOWN = "PANEL_WHEEL_DOWN";
     private static final float TOP_MARGIN = 12f;
     private static final float HALF_ROW_WIDTH = CONTENT_WIDTH / 2f - 10f;
-    private static final int VISIBLE_CODE_LINES = 10;
+    private static final int MIN_CODE_LINES = 10;
+    private static final float CODE_LINE_HEIGHT = 27f;
+    private static final float SCREEN_RESERVE = 40f;
     private static final Insets3f PANEL_INSETS = new Insets3f(10f, 20f, 10f, 20f);
 
     private final PanelFlow flow;
@@ -125,6 +127,16 @@ class QuestionPanelState extends BaseAppState {
     }
 
     private void render() {
+        renderPanel();
+        if (flow.step() != PanelStep.DONE && codeWindow.totalLines() > 0) {
+            float freeHeight = getApplication().getCamera().getHeight() - SCREEN_RESERVE - root.getPreferredSize().y;
+            codeWindow.fitInto(freeHeight, CODE_LINE_HEIGHT);
+            renderPanel();
+        }
+        place();
+    }
+
+    private void renderPanel() {
         root.clearChildren();
         root.addChild(new Panel(Widgets.PANEL_WIDTH, 1f, ColorRGBA.BlackNoAlpha));
         flow.notice().ifPresent(notice -> root.addChild(Widgets.text(notice, ColorRGBA.Yellow, CONTENT_WIDTH)));
@@ -134,13 +146,12 @@ class QuestionPanelState extends BaseAppState {
             renderQuestion();
         }
         flow.saveError().ifPresent(error -> root.addChild(Widgets.text(error, Widgets.ERROR_TEXT, CONTENT_WIDTH)));
-        place();
     }
 
     private void renderQuestion() {
         if (codeWindow == null || !flow.question().equals(shownQuestion)) {
             shownQuestion = flow.question();
-            codeWindow = new CodeWindow(shownQuestion.code(), VISIBLE_CODE_LINES);
+            codeWindow = new CodeWindow(shownQuestion.code(), MIN_CODE_LINES);
         }
         root.addChild(Widgets.text(flow.header(), Widgets.MUTED, CONTENT_WIDTH));
         root.addChild(Widgets.text(shownQuestion.prompt(), Widgets.TEXT, CONTENT_WIDTH));
