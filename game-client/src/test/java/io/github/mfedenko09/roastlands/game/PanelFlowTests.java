@@ -78,7 +78,7 @@ class PanelFlowTests {
 
     @Test
     void startsOnTheEasiestQuestionWithHeaderAndLabels() {
-        PanelFlow flow = GameStartup.open(paths, TODAY);
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
 
         assertThat(flow.step()).isEqualTo(PanelStep.CHOOSING);
         assertThat(flow.header()).isEqualTo("Basics  |  Difficulty 1  |  0/3");
@@ -105,7 +105,7 @@ class PanelFlowTests {
 
     @Test
     void wrongTrueFalseAnswerIsReportedWithTheRightOption() {
-        PanelFlow flow = GameStartup.open(paths, TODAY);
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
 
         flow.pick(1);
         flow.answer(Confidence.LOW);
@@ -140,7 +140,7 @@ class PanelFlowTests {
 
     @Test
     void answeringOutOfOrderChangesNothing() {
-        PanelFlow flow = GameStartup.open(paths, TODAY);
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
 
         flow.answer(Confidence.HIGH);
         flow.confirm();
@@ -170,7 +170,7 @@ class PanelFlowTests {
     @Test
     void failedSaveShowsReasonAndTheSessionGoesOn() throws IOException {
         Path blocker = Files.writeString(root.resolve("blocker"), "a file, not a folder");
-        PanelFlow flow = GameStartup.open(new GamePaths(paths.contentDir(), blocker.resolve("profile")), TODAY);
+        PanelFlow flow = GameStartup.open(new GamePaths(paths.contentDir(), blocker.resolve("profile")), TODAY).flow();
 
         flow.pick(0);
         flow.answer(Confidence.HIGH);
@@ -184,7 +184,7 @@ class PanelFlowTests {
 
     @Test
     void endOfDayShowsAnsweredCorrectPercentAndNoUnlocks() {
-        PanelFlow flow = GameStartup.open(paths, TODAY);
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
         flow.pick(0);
         flow.answer(Confidence.HIGH);
         flow.confirm();
@@ -203,11 +203,11 @@ class PanelFlowTests {
 
     @Test
     void closingAndReopeningTheGameContinuesFromTheNextQuestion() {
-        PanelFlow first = GameStartup.open(paths, TODAY);
+        PanelFlow first = GameStartup.open(paths, TODAY).flow();
         first.pick(0);
         first.answer(Confidence.HIGH);
 
-        PanelFlow second = GameStartup.open(paths, TODAY);
+        PanelFlow second = GameStartup.open(paths, TODAY).flow();
 
         assertThat(second.question().id()).isEqualTo("basics.single");
         assertThat(second.header()).isEqualTo("Basics  |  Difficulty 2  |  0/2");
@@ -217,7 +217,7 @@ class PanelFlowTests {
     void nothingDueAfterAFullDayGoesStraightToTheSummary() {
         answerEverythingToday();
 
-        PanelFlow flow = GameStartup.open(paths, TODAY);
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
 
         assertThat(flow.step()).isEqualTo(PanelStep.DONE);
         assertThat(flow.summary().answered()).isZero();
@@ -228,14 +228,14 @@ class PanelFlowTests {
         answerEverythingToday();
         Files.writeString(paths.profileDir().resolve("profile.json"), "{ not json");
 
-        PanelFlow flow = GameStartup.open(paths, TODAY);
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
 
         assertThat(flow.notice()).hasValue(PanelFlow.RESTORED_NOTICE);
     }
 
     @Test
     void unlockedTopicIdsAreShownAsTitlesAndUnknownIdsStay() {
-        PanelFlow flow = GameStartup.open(paths, TODAY);
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
 
         assertThat(flow.titles(List.of("basics", "ghost"))).containsExactly("Basics", "ghost");
     }
@@ -307,7 +307,7 @@ class PanelFlowTests {
     }
 
     private PanelFlow openAtSingleChoice() {
-        PanelFlow flow = GameStartup.open(paths, TODAY);
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
         flow.pick(0);
         flow.answer(Confidence.HIGH);
         flow.confirm();
@@ -337,5 +337,67 @@ class PanelFlowTests {
     private double savedEase(String cardId) {
         return new ProfileStore(paths.profileDir(), Set.of("basics")).load().profile().cards().get(cardId)
                 .easeFactor();
+    }
+
+    @Test
+    void todayCountsEachSavedAnswerRightOrWrongAndEndsFinished() {
+        GameSession game = GameStartup.open(paths, TODAY);
+        PanelFlow flow = game.flow();
+        assertThat(game.progress().today(flow.progress())).isEqualTo(new TodayView("Today 0/3", false));
+
+        flow.pick(1);
+        flow.answer(Confidence.HIGH);
+        assertThat(game.progress().today(flow.progress())).isEqualTo(new TodayView("Today 1/3", false));
+
+        flow.confirm();
+        flow.pick(0);
+        flow.answer(Confidence.HIGH);
+        flow.confirm();
+        flow.pick(0);
+        flow.pick(2);
+        flow.confirm();
+        flow.answer(Confidence.HIGH);
+
+        assertThat(game.progress().today(flow.progress())).isEqualTo(new TodayView("Today", true));
+    }
+
+    @Test
+    void todaySurvivesARestartOnTheSameDay() {
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
+        flow.pick(0);
+        flow.answer(Confidence.HIGH);
+
+        GameSession restarted = GameStartup.open(paths, TODAY);
+
+        assertThat(restarted.progress().today(restarted.flow().progress()))
+                .isEqualTo(new TodayView("Today 1/3", false));
+    }
+
+    @Test
+    void listenersHearEachAnswerAndTooEasyMark() {
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
+        int[] heard = {0};
+        flow.onAnswer(() -> heard[0]++);
+
+        flow.pick(0);
+        assertThat(heard[0]).isZero();
+        flow.answer(Confidence.HIGH);
+        assertThat(heard[0]).isEqualTo(1);
+        flow.markTooEasy();
+        assertThat(heard[0]).isEqualTo(2);
+    }
+
+    @Test
+    void listenersHearAnAnswerEvenWhenItsSaveFailed() throws IOException {
+        Path blocker = Files.writeString(root.resolve("blocker"), "a file, not a folder");
+        PanelFlow flow = GameStartup.open(new GamePaths(paths.contentDir(), blocker.resolve("profile")), TODAY).flow();
+        int[] heard = {0};
+        flow.onAnswer(() -> heard[0]++);
+
+        flow.pick(0);
+        flow.answer(Confidence.HIGH);
+
+        assertThat(flow.saveError()).isPresent();
+        assertThat(heard[0]).isEqualTo(1);
     }
 }

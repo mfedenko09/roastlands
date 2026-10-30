@@ -1,5 +1,7 @@
 package io.github.mfedenko09.roastlands.game;
 
+import static io.github.mfedenko09.roastlands.game.Widgets.CONTENT_WIDTH;
+
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
@@ -25,10 +27,7 @@ class QuestionPanelState extends BaseAppState {
 
     private static final String WHEEL_UP = "PANEL_WHEEL_UP";
     private static final String WHEEL_DOWN = "PANEL_WHEEL_DOWN";
-    private static final String MONO_FONT = "Interface/Fonts/JetBrainsMono-18.fnt";
-    private static final float PANEL_WIDTH = 1100f;
     private static final float TOP_MARGIN = 12f;
-    private static final float CONTENT_WIDTH = PANEL_WIDTH - 40f;
     private static final int VISIBLE_CODE_LINES = 10;
     private static final Insets3f PANEL_INSETS = new Insets3f(10f, 20f, 10f, 20f);
 
@@ -55,7 +54,7 @@ class QuestionPanelState extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
-        monoFont = app.getAssetManager().loadFont(MONO_FONT);
+        monoFont = app.getAssetManager().loadFont(Widgets.MONO_FONT);
         root.setBackground(new QuadBackgroundComponent(Widgets.PANEL));
         root.setInsets(PANEL_INSETS);
         bindKeys();
@@ -126,7 +125,7 @@ class QuestionPanelState extends BaseAppState {
 
     private void render() {
         root.clearChildren();
-        root.addChild(new Panel(PANEL_WIDTH, 1f, ColorRGBA.BlackNoAlpha));
+        root.addChild(new Panel(Widgets.PANEL_WIDTH, 1f, ColorRGBA.BlackNoAlpha));
         flow.notice().ifPresent(notice -> root.addChild(Widgets.text(notice, ColorRGBA.Yellow, CONTENT_WIDTH)));
         if (flow.step() == PanelStep.DONE) {
             renderDone();

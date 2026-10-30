@@ -4,7 +4,7 @@ import io.github.mfedenko09.roastlands.core.session.SessionProgress;
 
 final class PanelHeader {
 
-    private static final String SEPARATOR = "  |  ";
+    static final String SEPARATOR = "  |  ";
 
     private PanelHeader() {
     }

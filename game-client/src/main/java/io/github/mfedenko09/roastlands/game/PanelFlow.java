@@ -3,11 +3,14 @@ package io.github.mfedenko09.roastlands.game;
 import io.github.mfedenko09.roastlands.core.answer.Confidence;
 import io.github.mfedenko09.roastlands.core.content.Question;
 import io.github.mfedenko09.roastlands.core.content.QuestionType;
+import io.github.mfedenko09.roastlands.core.profile.PlayerProfile;
 import io.github.mfedenko09.roastlands.core.profile.ProfileStore;
 import io.github.mfedenko09.roastlands.core.session.AnswerResult;
 import io.github.mfedenko09.roastlands.core.session.ReviewSession;
+import io.github.mfedenko09.roastlands.core.session.SessionProgress;
 import io.github.mfedenko09.roastlands.core.topic.Topic;
 import io.github.mfedenko09.roastlands.core.topic.TopicGraph;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,6 +29,7 @@ final class PanelFlow {
     private final Map<String, String> topicTitles;
     private final String notice;
     private final DayTally tally = new DayTally();
+    private final List<Runnable> answerListeners = new ArrayList<>();
 
     private PanelStep step;
     private Question question;
@@ -40,6 +44,18 @@ final class PanelFlow {
         this.topicTitles = topics.topics().stream().collect(Collectors.toMap(Topic::id, Topic::title));
         this.notice = restoredFromBackup ? RESTORED_NOTICE : null;
         showCurrent();
+    }
+
+    void onAnswer(Runnable listener) {
+        answerListeners.add(listener);
+    }
+
+    PlayerProfile profile() {
+        return session.profile();
+    }
+
+    SessionProgress progress() {
+        return session.progress();
     }
 
     PanelStep step() {
@@ -169,5 +185,6 @@ final class PanelFlow {
         } catch (RuntimeException e) {
             saveError = NOT_SAVED + ErrorReason.of(e);
         }
+        answerListeners.forEach(Runnable::run);
     }
 }

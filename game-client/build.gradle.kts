@@ -27,7 +27,7 @@ application {
 
 val renderingClasses = listOf(
     "Roastlands", "RoastlandsApp", "IslandState", "PlayerState", "PhysicsAwareState", "InputBindings",
-    "StartupErrorDialog", "Widgets", "QuestionPanelState", "TerminalState",
+    "StartupErrorDialog", "Widgets", "QuestionPanelState", "TerminalState", "ProgressMapState", "HudState",
 ).flatMap { name ->
     val path = "io/github/mfedenko09/roastlands/game/$name"
     listOf("$path.class", "$path$*.class")

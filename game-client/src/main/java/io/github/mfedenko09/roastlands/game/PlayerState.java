@@ -85,6 +85,10 @@ class PlayerState extends PhysicsAwareState {
         return player.getWorldTranslation();
     }
 
+    boolean isFrozen() {
+        return frozen;
+    }
+
     void setFrozen(boolean frozen) {
         this.frozen = frozen;
         input = MovementInput.NONE;

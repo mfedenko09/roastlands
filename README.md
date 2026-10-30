@@ -36,10 +36,15 @@ Walk to the terminal (the cyan screen east of the spawn point) and press E withi
 The character stops and the mouse cursor shows. Keys: 1-5 choose an option (checkboxes on multi-choice, Enter
 submits), S "Sure" / N "Not sure", Enter next, Up/Down or mouse wheel scroll long code, Esc closes the panel and keeps
 the session in memory. Progress is saved after every answer; a failed save shows a red "Progress not saved" line.
+
+M opens the progress map: all islands with level, mastery and what each locked topic needs. Click an island header or
+press Up/Down to open another section; M or Esc closes the map. The top-left corner always shows `Today done/total`.
+
 The game reads `content/` from the repo root (`:game-client:run` starts there) and the profile from
 `ProfilePaths.defaultDir()`. Override with `-Droastlands.content=<dir>` and `-Droastlands.profile=<dir>`.
 
-Rendering is not tested in CI; only the pure logic (movement, respawn, required-file check, question flow) is.
+Rendering is not tested in CI; only the pure logic (movement, respawn, required-file check, question flow, progress
+view) is.
 
 ## Build
 
@@ -126,4 +131,5 @@ Colors for right and wrong answers are used only when the terminal is interactiv
 
 Code in the question panel uses a bitmap font generated from JetBrains Mono Regular at 18 px
 (`assets/Interface/Fonts/JetBrainsMono-18.*`). JetBrains Mono is licensed under the SIL Open Font License 1.1, see
-`JetBrainsMono-OFL.txt` next to the font.
+`JetBrainsMono-OFL.txt` next to the font. Neither this font nor the default one has a check mark or a lock, so both
+are small icons in `assets/Interface/Icons/`.
