@@ -11,6 +11,7 @@ import io.github.mfedenko09.roastlands.core.content.SingleIndex;
 import io.github.mfedenko09.roastlands.core.content.TextOption;
 import io.github.mfedenko09.roastlands.core.mastery.MasteryLevel;
 import io.github.mfedenko09.roastlands.core.profile.PlayerProfile;
+import io.github.mfedenko09.roastlands.core.profile.Streak;
 import io.github.mfedenko09.roastlands.core.session.ReviewSession;
 import io.github.mfedenko09.roastlands.core.session.SessionLimits;
 import io.github.mfedenko09.roastlands.core.session.SessionProgress;
@@ -42,6 +43,27 @@ class ProgressViewTests {
             .flatMap(List::stream)
             .toList());
     private final ProgressView view = new ProgressView(new GameContent(topics, content), TODAY, fresh());
+
+    @Test
+    void statsShowTheLevelFromXpAndTheCurrentStreak() {
+        PlayerProfile profile = fresh().toBuilder().xp(400).streak(new Streak(5, 7, TODAY)).build();
+
+        assertThat(view.stats(profile)).isEqualTo(new PlayerStatsView("Lv 3  |  ", "5"));
+    }
+
+    @Test
+    void statsShowZeroAfterASkippedDayAndKeepTheProfileAsItIs() {
+        Streak broken = new Streak(5, 7, TODAY.minusDays(2));
+        PlayerProfile profile = fresh().toBuilder().streak(broken).build();
+
+        assertThat(view.stats(profile).streak()).isEqualTo("0");
+        assertThat(profile.streak()).isEqualTo(broken);
+    }
+
+    @Test
+    void freshPlayerIsLevelOneWithNoStreak() {
+        assertThat(view.stats(fresh())).isEqualTo(new PlayerStatsView("Lv 1  |  ", "0"));
+    }
 
     @Test
     void islandsKeepTheOrderOfTheTopicGraph() {

@@ -46,6 +46,9 @@ final class ReviewCommand {
         }
         ReviewSession session = ReviewSession.start(
                 loaded.profile(), content.pack(), content.topics(), today, SessionLimits.DEFAULT);
+        if (session.questCompletedAtStart()) {
+            store.save(session.profile());
+        }
         if (session.isFinished()) {
             terminal.println("Nothing due today." + nextReviewSuffix(session.profile()));
             return 0;

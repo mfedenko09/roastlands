@@ -13,7 +13,9 @@ public record AnswerResult(
         String topicId,
         double masteryBefore,
         double masteryAfter,
-        List<String> topicsUnlocked) {
+        List<String> topicsUnlocked,
+        long xpGained,
+        boolean questCompleted) {
 
     public AnswerResult {
         topicsUnlocked = List.copyOf(topicsUnlocked);

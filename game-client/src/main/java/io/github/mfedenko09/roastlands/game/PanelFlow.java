@@ -44,6 +44,9 @@ final class PanelFlow {
         this.topicTitles = topics.topics().stream().collect(Collectors.toMap(Topic::id, Topic::title));
         this.notice = restoredFromBackup ? RESTORED_NOTICE : null;
         showCurrent();
+        if (session.questCompletedAtStart()) {
+            save();
+        }
     }
 
     void onAnswer(Runnable listener) {

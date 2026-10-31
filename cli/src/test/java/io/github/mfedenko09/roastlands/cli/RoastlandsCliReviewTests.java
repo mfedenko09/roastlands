@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.mfedenko09.roastlands.core.profile.PlayerProfile;
 import io.github.mfedenko09.roastlands.core.profile.ProfileStore;
+import io.github.mfedenko09.roastlands.core.profile.Streak;
+import io.github.mfedenko09.roastlands.core.progress.XpRules;
 import io.github.mfedenko09.roastlands.core.srs.CardState;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -176,6 +178,25 @@ class RoastlandsCliReviewTests {
 
         assertThat(result.exitCode()).isZero();
         assertThat(result.out()).isEqualTo("Nothing due today. Next review: 2026-11-04\n");
+    }
+
+    @Test
+    void emptyQueueSavesTheQuestAsDoneOnlyOnce() {
+        saveProfileWithAllCardsDue(TODAY.plusDays(7));
+
+        review("");
+        review("");
+
+        assertThat(savedProfile().xp()).isEqualTo(50);
+        assertThat(savedProfile().streak()).isEqualTo(new Streak(1, 1, TODAY));
+    }
+
+    @Test
+    void finishedQueueSavesXpAndStreak() {
+        review(ALL_RIGHT);
+
+        assertThat(savedProfile().xp()).isGreaterThan(XpRules.QUEST_BONUS);
+        assertThat(savedProfile().streak()).isEqualTo(new Streak(1, 1, TODAY));
     }
 
     @Test

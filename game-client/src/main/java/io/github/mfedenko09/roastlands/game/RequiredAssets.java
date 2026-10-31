@@ -8,7 +8,7 @@ final class RequiredAssets {
     static final List<String> PATHS = List.of(
             "Models/core-shore.obj", "Models/core-shore.mtl", "Models/character.obj", "Models/character.mtl",
             Widgets.MONO_FONT, "Interface/Fonts/JetBrainsMono-18.png",
-            Widgets.LOCK_ICON, Widgets.CHECK_ICON);
+            Widgets.LOCK_ICON, Widgets.CHECK_ICON, Widgets.STREAK_ICON);
 
     private RequiredAssets() {
     }
