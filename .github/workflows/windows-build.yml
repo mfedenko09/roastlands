@@ -2,7 +2,7 @@ name: Windows build
 
 on:
   push:
-    branches: [dev, main, feat/issue-10]
+    branches: [dev, main]
 
 permissions:
   contents: read
