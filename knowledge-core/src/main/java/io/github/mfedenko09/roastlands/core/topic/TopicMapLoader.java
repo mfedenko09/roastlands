@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -76,8 +77,8 @@ public final class TopicMapLoader {
     }
 
     private <T> T parse(Path file, Class<T> type, LoadedPacks loaded) {
-        try {
-            T parsed = yaml.readValue(file.toFile(), type);
+        try (InputStream in = Files.newInputStream(file)) {
+            T parsed = yaml.readValue(in, type);
             if (parsed == null) {
                 loaded.addProblem(file, "file is empty");
             }

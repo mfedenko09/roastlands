@@ -41,8 +41,8 @@ M opens the progress map: all islands with level, mastery and what each locked t
 press Up/Down to open another section; M or Esc closes the map. The top-left corner always shows `Today done/total`,
 then the level and the streak in days. A skipped day shows the streak as 0 until the next finished queue.
 
-The game reads `content/` from the repo root (`:game-client:run` starts there) and the profile from
-`ProfilePaths.defaultDir()`. Override with `-Droastlands.content=<dir>` and `-Droastlands.profile=<dir>`.
+The game reads the content packed into its jar and the profile from `ProfilePaths.defaultDir()`. Override with
+`-Droastlands.content=<dir>` and `-Droastlands.profile=<dir>`.
 
 Rendering is not tested in CI; only the pure logic (movement, respawn, required-file check, question flow, progress
 view) is.
@@ -65,7 +65,26 @@ After editing `topics.yaml`, regenerate the diagram:
 `check` also runs `verifyContent`, which compiles and runs the code of every question and fails when a marked answer
 is not what the JVM really does. It lists all broken question ids with a reason.
 
+`check` also runs `verifyPackedContent`, which fails when the `game-client` jar does not hold the same questions as
+`content/`.
+
 `check` also runs Jacoco and fails when line or branch coverage drops below 90%.
+
+## Windows package
+
+```bat
+gradlew.bat :game-client:jpackageImage
+```
+
+The result is `game-client/build/jpackage/Roastlands/`: `Roastlands.exe` with its own Java runtime, so the folder
+runs on a machine without Java. The build also runs `verifyPackedContent`.
+
+After jpackage, `useUtf8InLauncher` puts `src/main/jpackage/Roastlands.exe.manifest` into the exe. Its UTF-8 code page
+lets the game start from a folder whose name is outside the system code page, such as Cyrillic on an English Windows.
+This needs Windows 10 version 1903 or newer. The exe is not signed, so SmartScreen may show a warning.
+
+Every push to `dev` or `main` runs `.github/workflows/windows-build.yml`, which uploads the `roastlands-windows`
+artifact. GitHub gives it as `roastlands-windows.zip`.
 
 ## Player profile
 

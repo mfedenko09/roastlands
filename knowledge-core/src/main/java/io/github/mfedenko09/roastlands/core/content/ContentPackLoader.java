@@ -8,6 +8,7 @@ import io.github.mfedenko09.roastlands.core.topic.PackFile;
 import io.github.mfedenko09.roastlands.core.topic.Topic;
 import io.github.mfedenko09.roastlands.core.topic.TopicGraph;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,8 +42,8 @@ public final class ContentPackLoader {
     private PackFile readPackFile(Path packDir) {
         Path packFile = packDir.resolve(PACK_FILE);
         String name = display(packDir, packFile);
-        try {
-            PackFile pack = yaml.readValue(packFile.toFile(), PackFile.class);
+        try (InputStream in = Files.newInputStream(packFile)) {
+            PackFile pack = yaml.readValue(in, PackFile.class);
             if (pack == null || pack.id() == null || pack.id().isBlank() || pack.minJavaVersion() == null) {
                 throw new InvalidContentException(List.of(name + ": pack needs id and minJavaVersion"));
             }
@@ -71,8 +72,8 @@ public final class ContentPackLoader {
 
     private void readFile(Path file, ParseContext context, LoadedQuestions loaded) {
         JsonNode root;
-        try {
-            root = yaml.readTree(file.toFile());
+        try (InputStream in = Files.newInputStream(file)) {
+            root = yaml.readTree(in);
         } catch (JsonProcessingException e) {
             loaded.addFileProblem(
                     context.source(), e.getOriginalMessage() + " (line " + e.getLocation().getLineNr() + ")");

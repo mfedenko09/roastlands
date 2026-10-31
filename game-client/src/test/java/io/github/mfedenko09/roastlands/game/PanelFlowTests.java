@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,7 +76,15 @@ class PanelFlowTests {
         Files.writeString(pack.resolve("pack.yaml"), PACK);
         Files.writeString(pack.resolve("topics.yaml"), TOPICS);
         Files.writeString(pack.resolve("questions").resolve("basics.yaml"), QUESTIONS);
-        paths = new GamePaths(root.resolve("content"), root.resolve("profile"));
+        paths = new GamePaths(Optional.of(root.resolve("content")), root.resolve("profile"));
+    }
+
+    @Test
+    void withoutAContentFolderThePlayerGetsThePackedJavaCorePack() {
+        GameSession session = GameStartup.open(new GamePaths(Optional.empty(), root.resolve("profile")), TODAY);
+
+        assertThat(session.progress().islands(session.flow().profile()))
+                .extracting(IslandView::title).contains("Core Shore", "Generics Grotto");
     }
 
     @Test
@@ -269,7 +278,8 @@ class PanelFlowTests {
 
     @Test
     void brokenContentFailsTheStartupWithAReadableReason() throws IOException {
-        Files.writeString(paths.contentDir().resolve("packs/demo/questions/basics.yaml"), "- id: broken\n");
+        Files.writeString(paths.contentDir().orElseThrow().resolve("packs/demo/questions/basics.yaml"),
+                "- id: broken\n");
 
         InvalidContentException error = catchThrowableOfType(
                 InvalidContentException.class, () -> GameStartup.open(paths, TODAY));
@@ -288,7 +298,8 @@ class PanelFlowTests {
 
     @Test
     void tooEasyKeepsTheTopicsUnlockedByTheAnswer() throws IOException {
-        Files.writeString(paths.contentDir().resolve("packs").resolve("demo").resolve("topics.yaml"), TOPICS
+        Files.writeString(paths.contentDir().orElseThrow().resolve("packs").resolve("demo").resolve("topics.yaml"),
+                TOPICS
                 + "  - id: deep\n    title: Deep\n    island: shore\n    prerequisites: [basics]\n");
         PanelFlow flow = openAtMultiChoice();
         flow.pick(0);
@@ -389,7 +400,7 @@ class PanelFlowTests {
 
     @Test
     void emptyQueueOnANewDaySavesTheQuestAsDone() throws IOException {
-        Files.writeString(paths.contentDir().resolve("packs/demo/questions/basics.yaml"), "[]\n");
+        Files.writeString(paths.contentDir().orElseThrow().resolve("packs/demo/questions/basics.yaml"), "[]\n");
 
         PanelFlow flow = GameStartup.open(paths, TODAY).flow();
 
@@ -401,7 +412,7 @@ class PanelFlowTests {
 
     @Test
     void failedSaveOfAnEmptyQueueShowsTheErrorAndALaterRunPaysTheBonusOnce() throws IOException {
-        Files.writeString(paths.contentDir().resolve("packs/demo/questions/basics.yaml"), "[]\n");
+        Files.writeString(paths.contentDir().orElseThrow().resolve("packs/demo/questions/basics.yaml"), "[]\n");
         Path blocker = Files.writeString(root.resolve("blocker"), "a file, not a folder");
         GamePaths blocked = new GamePaths(paths.contentDir(), blocker.resolve("profile"));
 
