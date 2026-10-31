@@ -15,6 +15,7 @@ final class Widgets {
     static final float CONTENT_WIDTH = PANEL_WIDTH - 40f;
     static final String LOCK_ICON = "Interface/Icons/lock.png";
     static final String CHECK_ICON = "Interface/Icons/check.png";
+    static final String STREAK_ICON = "Interface/Icons/flame.png";
     static final ColorRGBA TEXT = ColorRGBA.White;
     static final ColorRGBA MUTED = new ColorRGBA(0.7f, 0.75f, 0.8f, 1f);
     static final ColorRGBA PANEL = new ColorRGBA(0.08f, 0.1f, 0.14f, 0.94f);

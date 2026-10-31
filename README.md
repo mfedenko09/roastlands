@@ -38,7 +38,8 @@ submits), S "Sure" / N "Not sure", Enter next, Up/Down or mouse wheel scroll lon
 the session in memory. Progress is saved after every answer; a failed save shows a red "Progress not saved" line.
 
 M opens the progress map: all islands with level, mastery and what each locked topic needs. Click an island header or
-press Up/Down to open another section; M or Esc closes the map. The top-left corner always shows `Today done/total`.
+press Up/Down to open another section; M or Esc closes the map. The top-left corner always shows `Today done/total`,
+then the level and the streak in days. A skipped day shows the streak as 0 until the next finished queue.
 
 The game reads `content/` from the repo root (`:game-client:run` starts there) and the profile from
 `ProfilePaths.defaultDir()`. Override with `-Droastlands.content=<dir>` and `-Droastlands.profile=<dir>`.

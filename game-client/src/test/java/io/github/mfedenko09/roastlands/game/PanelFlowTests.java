@@ -6,8 +6,10 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 import io.github.mfedenko09.roastlands.core.answer.Confidence;
 import io.github.mfedenko09.roastlands.core.content.InvalidContentException;
+import io.github.mfedenko09.roastlands.core.profile.PlayerProfile;
 import io.github.mfedenko09.roastlands.core.profile.ProfileCorruptedException;
 import io.github.mfedenko09.roastlands.core.profile.ProfileStore;
+import io.github.mfedenko09.roastlands.core.profile.Streak;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -371,6 +373,68 @@ class PanelFlowTests {
 
         assertThat(restarted.progress().today(restarted.flow().progress()))
                 .isEqualTo(new TodayView("Today 1/3", false));
+    }
+
+    @Test
+    void finishingTheQueueSavesTheQuestAndASecondRunTheSameDayPaysNothing() {
+        answerAllRight(GameStartup.open(paths, TODAY).flow());
+
+        PlayerProfile saved = savedProfile();
+        assertThat(saved.xp()).isEqualTo(110);
+        assertThat(saved.streak()).isEqualTo(new Streak(1, 1, TODAY));
+
+        GameStartup.open(paths, TODAY);
+        assertThat(savedProfile()).isEqualTo(saved);
+    }
+
+    @Test
+    void emptyQueueOnANewDaySavesTheQuestAsDone() throws IOException {
+        Files.writeString(paths.contentDir().resolve("packs/demo/questions/basics.yaml"), "[]\n");
+
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
+
+        assertThat(flow.step()).isEqualTo(PanelStep.DONE);
+        assertThat(flow.saveError()).isEmpty();
+        assertThat(savedProfile().xp()).isEqualTo(50);
+        assertThat(savedProfile().streak()).isEqualTo(new Streak(1, 1, TODAY));
+    }
+
+    @Test
+    void failedSaveOfAnEmptyQueueShowsTheErrorAndALaterRunPaysTheBonusOnce() throws IOException {
+        Files.writeString(paths.contentDir().resolve("packs/demo/questions/basics.yaml"), "[]\n");
+        Path blocker = Files.writeString(root.resolve("blocker"), "a file, not a folder");
+        GamePaths blocked = new GamePaths(paths.contentDir(), blocker.resolve("profile"));
+
+        PanelFlow flow = GameStartup.open(blocked, TODAY).flow();
+
+        assertThat(flow.step()).isEqualTo(PanelStep.DONE);
+        assertThat(flow.saveError()).isPresent();
+        assertThat(flow.profile().xp()).isEqualTo(50);
+
+        Files.delete(blocker);
+        assertThat(GameStartup.open(blocked, TODAY).flow().saveError()).isEmpty();
+        GameStartup.open(blocked, TODAY);
+
+        PlayerProfile saved = new ProfileStore(blocked.profileDir(), Set.of("basics")).load().profile();
+        assertThat(saved.xp()).isEqualTo(50);
+        assertThat(saved.streak()).isEqualTo(new Streak(1, 1, TODAY));
+    }
+
+    private static void answerAllRight(PanelFlow flow) {
+        flow.pick(0);
+        flow.answer(Confidence.HIGH);
+        flow.confirm();
+        flow.pick(1);
+        flow.answer(Confidence.HIGH);
+        flow.confirm();
+        flow.pick(0);
+        flow.pick(2);
+        flow.confirm();
+        flow.answer(Confidence.HIGH);
+    }
+
+    private PlayerProfile savedProfile() {
+        return new ProfileStore(paths.profileDir(), Set.of("basics")).load().profile();
     }
 
     @Test

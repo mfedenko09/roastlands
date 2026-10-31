@@ -12,6 +12,7 @@ import io.github.mfedenko09.roastlands.core.content.QuestionType;
 import io.github.mfedenko09.roastlands.core.content.SingleIndex;
 import io.github.mfedenko09.roastlands.core.content.TextOption;
 import io.github.mfedenko09.roastlands.core.profile.PlayerProfile;
+import io.github.mfedenko09.roastlands.core.profile.Streak;
 import io.github.mfedenko09.roastlands.core.srs.CardState;
 import io.github.mfedenko09.roastlands.core.topic.Island;
 import io.github.mfedenko09.roastlands.core.topic.Topic;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.Test;
 class ReviewSessionTests {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 11, 1);
+    private static final LocalDate NOV_2 = LocalDate.of(2026, 11, 2);
     private static final long SLOW_CI_LIMIT_MILLIS = 500;
     private static final String TYPES = "core.types";
     private static final String OOP = "core.oop";
@@ -413,6 +415,117 @@ class ReviewSessionTests {
         assertThat(legacy.firstSeenDate()).isNull();
         assertThat(queueIds(profileWith(Set.of(TYPES), legacy), questions, SessionLimits.DEFAULT))
                 .containsExactly("q-2", "q-3", "q-4", "q-5", "q-6");
+    }
+
+    @Test
+    void answersGiveXpByDifficultyAndWrongOnesGiveTwo() {
+        ReviewSession session = start(
+                PlayerProfile.empty(Set.of(TYPES)),
+                List.of(question("t-1", TYPES, 2), question("t-2", TYPES, 2), question("t-3", TYPES, 2)),
+                SessionLimits.DEFAULT);
+
+        AnswerResult right = session.answer(Set.of(1), Confidence.HIGH);
+        assertThat(right.xpGained()).isEqualTo(20);
+        assertThat(right.questCompleted()).isFalse();
+        session.next();
+        AnswerResult wrong = session.answer(Set.of(0), Confidence.HIGH);
+
+        assertThat(wrong.xpGained()).isEqualTo(2);
+        assertThat(session.profile().xp()).isEqualTo(22);
+    }
+
+    @Test
+    void lastAnswerOfTheQueueCompletesTheQuestAndAddsTheBonus() {
+        ReviewSession session = startOnNov2(PlayerProfile.empty(Set.of(TYPES)), twoQuestions());
+
+        session.answer(Set.of(1), Confidence.HIGH);
+        session.next();
+        AnswerResult last = session.answer(Set.of(0), Confidence.HIGH);
+
+        assertThat(last.questCompleted()).isTrue();
+        assertThat(last.xpGained()).isEqualTo(52);
+        assertThat(session.profile().xp()).isEqualTo(72);
+        assertThat(session.profile().streak()).isEqualTo(new Streak(1, 1, NOV_2));
+    }
+
+    @Test
+    void secondFullQueueOnTheSameDayGivesNoSecondBonus() {
+        List<Question> questions = IntStream.rangeClosed(1, 4)
+                .mapToObj(n -> question("q-" + n, TYPES, 1)).toList();
+        SessionLimits oneAtATime = new SessionLimits(0, 1);
+        ReviewSession first = ReviewSession.start(PlayerProfile.empty(Set.of(TYPES)),
+                new ContentPack("test", questions), topics, TODAY, oneAtATime);
+        first.answer(Set.of(1), Confidence.HIGH);
+        SessionLimits oneMore = new SessionLimits(0, 2);
+
+        ReviewSession second = ReviewSession.start(first.profile(),
+                new ContentPack("test", questions), topics, TODAY, oneMore);
+        AnswerResult result = second.answer(Set.of(1), Confidence.HIGH);
+
+        assertThat(result.questCompleted()).isFalse();
+        assertThat(result.xpGained()).isEqualTo(10);
+        assertThat(second.profile().xp()).isEqualTo(70);
+        assertThat(second.profile().streak()).isEqualTo(new Streak(1, 1, TODAY));
+    }
+
+    @Test
+    void markingTheLastAnswerTooEasyDoesNotPayTheBonusTwice() {
+        ReviewSession session = start(
+                PlayerProfile.empty(Set.of(TYPES)), List.of(question("t-1", TYPES, 2)), SessionLimits.DEFAULT);
+        session.answer(Set.of(1), Confidence.HIGH);
+
+        AnswerResult easy = session.markTooEasy();
+
+        assertThat(easy.xpGained()).isEqualTo(70);
+        assertThat(easy.questCompleted()).isTrue();
+        assertThat(session.profile().xp()).isEqualTo(70);
+        assertThat(session.profile().streak()).isEqualTo(new Streak(1, 1, TODAY));
+    }
+
+    @Test
+    void lastAnswerWithTheClockMovedBackGivesNoBonusAndKeepsTheStreak() {
+        Streak streak = new Streak(5, 5, NOV_2);
+        PlayerProfile profile = PlayerProfile.empty(Set.of(TYPES)).toBuilder().streak(streak).build();
+        ReviewSession session = start(profile, List.of(question("t-1", TYPES, 1)), SessionLimits.DEFAULT);
+
+        AnswerResult last = session.answer(Set.of(1), Confidence.HIGH);
+
+        assertThat(last.questCompleted()).isFalse();
+        assertThat(session.profile().xp()).isEqualTo(10);
+        assertThat(session.profile().streak()).isEqualTo(streak);
+    }
+
+    @Test
+    void emptyQueueCountsTheQuestAsDoneOnce() {
+        PlayerProfile profile = PlayerProfile.empty(Set.of(TYPES)).toBuilder()
+                .streak(new Streak(4, 4, NOV_2.minusDays(1)))
+                .build();
+
+        ReviewSession session = startOnNov2(profile, List.of());
+
+        assertThat(session.questCompletedAtStart()).isTrue();
+        assertThat(session.profile().xp()).isEqualTo(50);
+        assertThat(session.profile().streak()).isEqualTo(new Streak(5, 5, NOV_2));
+        ReviewSession restarted = startOnNov2(session.profile(), List.of());
+        assertThat(restarted.questCompletedAtStart()).isFalse();
+        assertThat(restarted.profile().xp()).isEqualTo(50);
+    }
+
+    @Test
+    void sessionWithQuestionsDoesNotCompleteTheQuestAtStart() {
+        ReviewSession session = startOnNov2(PlayerProfile.empty(Set.of(TYPES)), twoQuestions());
+
+        assertThat(session.questCompletedAtStart()).isFalse();
+        assertThat(session.profile().xp()).isZero();
+        assertThat(session.profile().streak()).isEqualTo(Streak.none());
+    }
+
+    private List<Question> twoQuestions() {
+        return List.of(question("t-1", TYPES, 2), question("t-2", TYPES, 2));
+    }
+
+    private ReviewSession startOnNov2(PlayerProfile profile, List<Question> questions) {
+        return ReviewSession.start(profile, new ContentPack("test", questions), topics, NOV_2, SessionLimits.DEFAULT);
     }
 
     private static CardState firstSeenToday(String id) {

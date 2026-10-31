@@ -6,6 +6,9 @@ import io.github.mfedenko09.roastlands.core.content.AnswerChecker;
 import io.github.mfedenko09.roastlands.core.content.ContentPack;
 import io.github.mfedenko09.roastlands.core.content.Question;
 import io.github.mfedenko09.roastlands.core.profile.PlayerProfile;
+import io.github.mfedenko09.roastlands.core.profile.Streak;
+import io.github.mfedenko09.roastlands.core.progress.StreakRules;
+import io.github.mfedenko09.roastlands.core.progress.XpRules;
 import io.github.mfedenko09.roastlands.core.srs.CardState;
 import io.github.mfedenko09.roastlands.core.srs.Grade;
 import io.github.mfedenko09.roastlands.core.srs.Sm2Scheduler;
@@ -30,10 +33,13 @@ public final class ReviewSession {
     private final Sm2Scheduler scheduler = new Sm2Scheduler();
     private final GradeResolver gradeResolver = new GradeResolver();
     private final AnswerChecker answerChecker = new AnswerChecker();
+    private final XpRules xpRules = new XpRules();
+    private final StreakRules streakRules = new StreakRules();
     private final TopicGraph topics;
     private final MasteryBoard masteryBoard;
     private final LocalDate today;
     private final List<Question> queue;
+    private final boolean questCompletedAtStart;
 
     private PlayerProfile profile;
     private PlayerProfile profileBeforeAnswer;
@@ -47,11 +53,12 @@ public final class ReviewSession {
             TopicGraph topics,
             LocalDate today,
             List<Question> queue) {
-        this.profile = profile;
         this.topics = topics;
         this.today = today;
         this.queue = queue;
         this.masteryBoard = new MasteryBoard(questions);
+        this.profile = queue.isEmpty() ? withQuestCompleted(profile) : profile;
+        this.questCompletedAtStart = isQuestCompleted(profile, this.profile);
     }
 
     public static ReviewSession start(
@@ -94,6 +101,10 @@ public final class ReviewSession {
 
     public PlayerProfile profile() {
         return profile;
+    }
+
+    public boolean questCompletedAtStart() {
+        return questCompletedAtStart;
     }
 
     public SessionProgress progress() {
@@ -152,7 +163,13 @@ public final class ReviewSession {
         Map<String, Double> masteryBefore = masteryBoard.masteryByTopic(base.cards(), today);
         Map<String, Double> masteryAfter = masteryBoard.masteryByTopic(cards, today);
         Set<String> unlocked = new LinkedHashSet<>(topics.unlockable(masteryAfter, base.unlockedTopics()));
-        AnswerResult result = AnswerResult.builder()
+        PlayerProfile answered = base.toBuilder()
+                .cards(cards)
+                .unlockedTopics(unlocked)
+                .xp(base.xp() + xpRules.forAnswer(correct, question.difficulty()))
+                .build();
+        profile = position == queue.size() - 1 ? withQuestCompleted(answered) : answered;
+        return AnswerResult.builder()
                 .correct(correct)
                 .correctAnswer(question.correct())
                 .explanation(question.explanation())
@@ -161,8 +178,20 @@ public final class ReviewSession {
                 .masteryBefore(masteryBefore.get(question.topic()))
                 .masteryAfter(masteryAfter.get(question.topic()))
                 .topicsUnlocked(unlocked.stream().filter(id -> !base.unlockedTopics().contains(id)).toList())
+                .xpGained(profile.xp() - base.xp())
+                .questCompleted(isQuestCompleted(base, profile))
                 .build();
-        profile = base.toBuilder().cards(cards).unlockedTopics(unlocked).build();
-        return result;
+    }
+
+    private PlayerProfile withQuestCompleted(PlayerProfile player) {
+        Streak streak = streakRules.onQuestCompleted(player.streak(), today);
+        if (streak.equals(player.streak())) {
+            return player;
+        }
+        return player.toBuilder().streak(streak).xp(player.xp() + XpRules.QUEST_BONUS).build();
+    }
+
+    private static boolean isQuestCompleted(PlayerProfile before, PlayerProfile after) {
+        return !before.streak().equals(after.streak());
     }
 }
