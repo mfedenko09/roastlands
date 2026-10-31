@@ -6,6 +6,7 @@ jackson = "2.19.2"
 jme = "3.9.0-stable"
 minie = "9.0.3"
 lemur = "1.16.0"
+beryx-runtime = "2.0.1"
 
 [libraries]
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -21,3 +22,6 @@ jme-lwjgl3 = { module = "org.jmonkeyengine:jme3-lwjgl3", version.ref = "jme" }
 jme-plugins = { module = "org.jmonkeyengine:jme3-plugins", version.ref = "jme" }
 minie = { module = "com.github.stephengold:Minie", version.ref = "minie" }
 lemur = { module = "com.simsilica:lemur", version.ref = "lemur" }
+
+[plugins]
+beryx-runtime = { id = "org.beryx.runtime", version.ref = "beryx-runtime" }

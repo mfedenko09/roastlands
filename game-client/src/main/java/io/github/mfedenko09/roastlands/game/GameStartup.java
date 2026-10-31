@@ -14,12 +14,19 @@ final class GameStartup {
     }
 
     static GameSession open(GamePaths paths, LocalDate today) {
-        GameContent content = new ContentLoader().load(paths.contentDir());
+        GameContent content = loadContent(paths);
         ProfileStore store = new ProfileStore(paths.profileDir(), content.topics().rootTopicIds());
         LoadResult loaded = store.load();
         ReviewSession session = ReviewSession.start(
                 loaded.profile(), content.pack(), content.topics(), today, SessionLimits.DEFAULT);
         PanelFlow flow = new PanelFlow(session, store, content.topics(), loaded.restoredFromBackup());
         return new GameSession(flow, new ProgressView(content, today, loaded.profile()));
+    }
+
+    private static GameContent loadContent(GamePaths paths) {
+        ContentLoader loader = new ContentLoader();
+        return paths.contentDir()
+                .map(loader::load)
+                .orElseGet(() -> loader.loadPacked(GameStartup.class.getClassLoader()));
     }
 }

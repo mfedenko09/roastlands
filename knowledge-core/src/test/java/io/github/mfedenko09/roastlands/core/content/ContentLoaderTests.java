@@ -4,8 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -49,6 +56,86 @@ class ContentLoaderTests {
                 InvalidContentException.class, () -> new ContentLoader().load(contentDir));
 
         assertThat(error.getMessage()).contains(contentDir.resolve("packs").toAbsolutePath().toString());
+    }
+
+    @Test
+    void loadsTheSameContentFromAJarInAFolderWithSpacesAndCyrillicLetters(@TempDir Path temp) throws IOException {
+        writeSamplePack();
+        Path jar = packIntoJar(Files.createDirectories(temp.resolve("Мої ігри")).resolve("game client.jar"));
+
+        try (URLClassLoader classLoader = classLoaderOf(jar)) {
+            GameContent packed = new ContentLoader().loadPacked(classLoader);
+            GameContent fromFolder = new ContentLoader().load(contentDir);
+
+            assertThat(packed.pack().questions())
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("source")
+                    .isEqualTo(fromFolder.pack().questions());
+            assertThat(packed.topics().topics()).isEqualTo(fromFolder.topics().topics());
+            assertThat(packed.topics().islands()).isEqualTo(fromFolder.topics().islands());
+        }
+    }
+
+    @Test
+    void loadsPackedContentFromAClasspathFolder(@TempDir Path classes) throws IOException {
+        writeSamplePack();
+        Path packs = Files.createDirectories(classes.resolve("content/packs"));
+        copyTree(contentDir.resolve("packs"), packs);
+
+        try (URLClassLoader classLoader = classLoaderOf(classes)) {
+            assertThat(new ContentLoader().loadPacked(classLoader).pack().questions())
+                    .extracting(Question::id).containsExactly("basics.one");
+        }
+    }
+
+    @Test
+    void failsWhenTheBuildHasNoPackedContent(@TempDir Path classes) throws IOException {
+        try (URLClassLoader classLoader = classLoaderOf(classes)) {
+            InvalidContentException error = catchThrowableOfType(
+                    InvalidContentException.class, () -> new ContentLoader().loadPacked(classLoader));
+
+            assertThat(error.getMessage()).contains("no packed content");
+        }
+    }
+
+    private void writeSamplePack() throws IOException {
+        writePack("a-pack", "a-pack", "islands: [{id: shore, title: Shore}]\ntopics:\n"
+                + "  - {id: basics, title: Basics, island: shore}\n", BASICS_QUESTION, "basics");
+    }
+
+    private Path packIntoJar(Path jar) throws IOException {
+        try (OutputStream file = Files.newOutputStream(jar);
+                JarOutputStream out = new JarOutputStream(file);
+                Stream<Path> tree = Files.walk(contentDir)) {
+            for (Path path : tree.sorted().toList()) {
+                String name = "content/" + contentDir.relativize(path).toString().replace('\\', '/');
+                boolean directory = Files.isDirectory(path);
+                out.putNextEntry(new JarEntry(directory && !name.endsWith("/") ? name + "/" : name));
+                if (!directory) {
+                    Files.copy(path, out);
+                }
+                out.closeEntry();
+            }
+        }
+        return jar;
+    }
+
+    private static void copyTree(Path from, Path to) throws IOException {
+        List<Path> paths;
+        try (Stream<Path> tree = Files.walk(from)) {
+            paths = tree.sorted().toList();
+        }
+        for (Path path : paths) {
+            Path target = to.resolve(from.relativize(path).toString());
+            if (Files.isDirectory(path)) {
+                Files.createDirectories(target);
+            } else {
+                Files.copy(path, target);
+            }
+        }
+    }
+
+    private static URLClassLoader classLoaderOf(Path location) throws IOException {
+        return new URLClassLoader(new URL[] {location.toUri().toURL()}, null);
     }
 
     private void writePack(String folder, String id, String topics, String questions, String topicFile)

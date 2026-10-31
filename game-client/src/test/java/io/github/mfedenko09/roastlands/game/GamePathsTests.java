@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.mfedenko09.roastlands.core.profile.ProfilePaths;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class GamePathsTests {
@@ -13,7 +14,7 @@ class GamePathsTests {
     void usesDefaultsWhenNothingIsSet() {
         GamePaths paths = GamePaths.from(Map.<String, String>of()::get);
 
-        assertThat(paths.contentDir()).isEqualTo(Path.of("content"));
+        assertThat(paths.contentDir()).isEmpty();
         assertThat(paths.profileDir()).isEqualTo(ProfilePaths.defaultDir());
     }
 
@@ -21,6 +22,6 @@ class GamePathsTests {
     void propertiesOverrideTheDefaults() {
         GamePaths paths = GamePaths.from(Map.of("roastlands.content", "/c", "roastlands.profile", "/p")::get);
 
-        assertThat(paths).isEqualTo(new GamePaths(Path.of("/c"), Path.of("/p")));
+        assertThat(paths).isEqualTo(new GamePaths(Optional.of(Path.of("/c")), Path.of("/p")));
     }
 }
