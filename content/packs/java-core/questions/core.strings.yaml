@@ -2,6 +2,7 @@
   topic: core.strings
   type: CODE_OUTPUT
   difficulty: 1
+  keyPoint: 0
   prompt: What does this code print?
   code: |
     public class Main {
@@ -29,6 +30,7 @@
   topic: core.strings
   type: CODE_OUTPUT
   difficulty: 3
+  keyPoint: 0
   prompt: What does this code print?
   code: |
     public class Main {
@@ -55,6 +57,7 @@
   topic: core.strings
   type: CODE_OUTPUT
   difficulty: 3
+  keyPoint: 4
   prompt: What does this code print? The line breaks matter.
   code: |
     public class Main {
@@ -81,6 +84,7 @@
   topic: core.strings
   type: SINGLE_CHOICE
   difficulty: 1
+  keyPoint: 2
   prompt: Why is building a long text with s += part in a loop slow?
   options:
     - Each += creates a new String and copies all characters collected so far

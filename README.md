@@ -65,6 +65,9 @@ After editing `topics.yaml`, regenerate the diagram:
 `check` also runs `verifyContent`, which compiles and runs the code of every question and fails when a marked answer
 is not what the JVM really does. It lists all broken question ids with a reason.
 
+`./gradlew :content-tools:contentCoverage` prints which questions cover each key point of a topic. It is not part of
+`check`.
+
 `check` also runs `verifyPackedContent`, which fails when the `game-client` jar does not hold the same questions as
 `content/`.
 

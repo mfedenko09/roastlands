@@ -1,0 +1,293 @@
+- id: core.modern-types.record-generated-members
+  topic: core.modern-types
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 0
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        record Point(int x, int y) {
+        }
+
+        public static void main(String[] args) {
+            Point point = new Point(1, 2);
+            System.out.println(point.equals(new Point(1, 2)));
+            System.out.println(point);
+            System.out.println(point.x());
+        }
+    }
+  options:
+    - output: "true\nPoint[x=1, y=2]\n1"
+    - output: "false\nPoint[x=1, y=2]\n1"
+    - output: "true\nPoint(x=1, y=2)\n1"
+    - compileError: true
+  correct: 0
+  explanation: >-
+    A record gets an equals that compares its components, so two records with the same values are equal, unlike the
+    identity check of Object.equals. It also gets a toString with square brackets and an accessor x(), not getX().
+    The exact toString text is not specified, but the JDK prints this form.
+  reference: JLS §8.10.3
+
+- id: core.modern-types.compact-constructor-assigns-parameter
+  topic: core.modern-types
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 0
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        record Name(String value) {
+            Name {
+                value = value.trim();
+            }
+        }
+
+        public static void main(String[] args) {
+            System.out.println("[" + new Name("  ann ").value() + "]");
+        }
+    }
+  options:
+    - output: "[ann]"
+    - output: "[  ann ]"
+    - compileError: true
+  correct: 0
+  explanation: >-
+    In a compact constructor, value is the parameter, not the field, so assigning to it compiles. The output is not
+    "[  ann ]", because the field is set from the parameter after the body ends, so it gets the trimmed text. The
+    compile error people expect does exist, but only for this.value = ... : a compact constructor must not assign
+    the field itself, because the field is assigned automatically after the body.
+  reference: JLS §8.10.4.2
+
+- id: core.modern-types.record-shallow-immutability
+  topic: core.modern-types
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 1
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        record Team(List<String> names) {
+        }
+
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>(List.of("ann"));
+            Team team = new Team(names);
+            names.add("bob");
+            System.out.println(team.names());
+        }
+    }
+  options:
+    - output: "[ann, bob]"
+    - output: "[ann]"
+    - exception: java.lang.UnsupportedOperationException
+  correct: 0
+  explanation: >-
+    The record field is final, but it only holds a reference to the same list, and the list can still change.
+    A record makes no copy for you. To get a real snapshot, call List.copyOf in a compact constructor.
+  reference: JLS §8.10
+
+- id: core.modern-types.record-allowed-members
+  topic: core.modern-types
+  type: MULTI_CHOICE
+  difficulty: 2
+  keyPoint: 1
+  prompt: Which of these can a record declaration contain?
+  options:
+    - An implements clause
+    - An extends clause that names a class
+    - A static field
+    - An instance field besides its components
+    - An instance method
+  correct: [0, 2, 4]
+  explanation: >-
+    Every record already extends java.lang.Record, so it cannot have an extends clause. Its state is exactly its
+    components, so other instance fields are not allowed either. Static fields, instance methods and interfaces are
+    all fine, because they add no state to the record.
+  reference: JLS §8.10
+
+- id: core.modern-types.enum-constant-body-class
+  topic: core.modern-types
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 2
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        enum Operation {
+            PLUS {
+                @Override
+                int apply(int a, int b) {
+                    return a + b;
+                }
+            },
+            MINUS {
+                @Override
+                int apply(int a, int b) {
+                    return a - b;
+                }
+            };
+
+            abstract int apply(int a, int b);
+        }
+
+        public static void main(String[] args) {
+            System.out.println(Operation.PLUS.apply(2, 1));
+            System.out.println(Operation.PLUS.getClass() == Operation.class);
+            System.out.println(Operation.PLUS.getDeclaringClass() == Operation.class);
+        }
+    }
+  options:
+    - output: "3\ntrue\ntrue"
+    - output: "3\nfalse\ntrue"
+    - output: "3\nfalse\nfalse"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    A constant with a class body is an instance of an anonymous subclass of the enum, which is how each constant can
+    implement the abstract method. So getClass() is not Operation.class. getDeclaringClass() exists for this case and
+    always returns the enum type.
+  reference: JLS §8.9.1
+
+- id: core.modern-types.enum-map-declaration-order
+  topic: core.modern-types
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.EnumMap;
+    import java.util.Map;
+
+    public class Main {
+        enum Size {
+            SMALL, MEDIUM, LARGE
+        }
+
+        public static void main(String[] args) {
+            Map<Size, Integer> stock = new EnumMap<>(Size.class);
+            stock.put(Size.LARGE, 1);
+            stock.put(Size.SMALL, 2);
+            stock.put(Size.MEDIUM, 3);
+            System.out.println(stock);
+        }
+    }
+  options:
+    - output: "{SMALL=2, MEDIUM=3, LARGE=1}"
+    - output: "{LARGE=1, SMALL=2, MEDIUM=3}"
+    - output: "{LARGE=1, MEDIUM=3, SMALL=2}"
+  correct: 0
+  explanation: >-
+    EnumMap keeps its keys in the natural order of the enum, which is the order the constants are declared in. It
+    does not keep insertion order like LinkedHashMap, and it does not sort by the name of the constant.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/EnumMap.html
+
+- id: core.modern-types.sealed-switch-missing-case
+  topic: core.modern-types
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What does this code do?
+  code: |
+    public class Main {
+        sealed interface Shape permits Circle, Square {
+        }
+
+        record Circle() implements Shape {
+        }
+
+        record Square() implements Shape {
+        }
+
+        static String name(Shape shape) {
+            return switch (shape) {
+                case Circle circle -> "circle";
+            };
+        }
+
+        public static void main(String[] args) {
+            System.out.println(name(new Circle()));
+        }
+    }
+  options:
+    - output: "circle"
+    - exception: java.lang.MatchException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    A switch expression must be exhaustive. Shape is sealed, so the compiler knows all its subtypes and sees that
+    Square is missing. It is rejected at compile time even though only a Circle is passed. With a case for Square
+    no default is needed, and the compiler reports a new subtype that a switch does not handle.
+  reference: JLS §15.28.1
+
+- id: core.modern-types.record-pattern-with-guard
+  topic: core.modern-types
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 4
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        record Pair(Object left, Object right) {
+        }
+
+        static String describe(Object value) {
+            return switch (value) {
+                case Pair(Integer left, Integer right) when left > right -> "descending";
+                case Pair(Integer left, Integer right) -> "numbers";
+                case Pair pair -> "pair";
+                default -> "other";
+            };
+        }
+
+        public static void main(String[] args) {
+            System.out.println(describe(new Pair(1, 2)));
+            System.out.println(describe(new Pair(1, "2")));
+            System.out.println(describe("text"));
+        }
+    }
+  options:
+    - output: "numbers\npair\nother"
+    - output: "descending\npair\nother"
+    - output: "numbers\nnumbers\nother"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 0
+  explanation: >-
+    Cases are tried from top to bottom. Pair(1, 2) matches the record pattern of the first case, but its guard is
+    false, so the second case wins. For Pair(1, "2") a nested pattern does not match, which just moves on to the next
+    case and is not a ClassCastException. Text is not a Pair, so it reaches default.
+  reference: JLS §14.30.2
+
+- id: core.modern-types.dominated-pattern
+  topic: core.modern-types
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 4
+  prompt: What does this code do?
+  code: |
+    public class Main {
+        static String describe(Object value) {
+            return switch (value) {
+                case CharSequence text -> "text";
+                case String string -> "string";
+                default -> "other";
+            };
+        }
+
+        public static void main(String[] args) {
+            System.out.println(describe("hello"));
+        }
+    }
+  options:
+    - output: "text"
+    - output: "string"
+    - compileError: true
+  correct: 2
+  explanation: >-
+    Every String is a CharSequence, so the second case can never be reached. The compiler reports this as a dominated
+    case label. This differs from a chain of if statements with instanceof, where the same order compiles and prints
+    text. Put the more specific pattern first.
+  reference: JLS §14.11.1

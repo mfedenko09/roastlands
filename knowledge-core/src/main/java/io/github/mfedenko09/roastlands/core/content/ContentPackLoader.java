@@ -13,7 +13,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,11 +27,13 @@ public final class ContentPackLoader {
 
     public ContentPack load(Path packDir, TopicGraph topics) {
         PackFile pack = readPackFile(packDir);
-        Set<String> knownTopics = topics.topics().stream().map(Topic::id).collect(Collectors.toSet());
+        Map<String, Integer> keyPointCounts = topics.topics().stream()
+                .collect(Collectors.toMap(Topic::id, topic -> topic.keyPoints().size()));
         LoadedQuestions loaded = new LoadedQuestions();
         for (Path file : questionFiles(packDir.resolve(QUESTIONS_DIR))) {
-            readFile(file, new ParseContext(topicOf(file), knownTopics, pack.minJavaVersion(), display(packDir, file)),
-                    loaded);
+            ParseContext context =
+                    new ParseContext(topicOf(file), keyPointCounts, pack.minJavaVersion(), display(packDir, file));
+            readFile(file, context, loaded);
         }
         if (!loaded.problems().isEmpty()) {
             throw new InvalidContentException(loaded.problems());

@@ -1,6 +1,6 @@
 package io.github.mfedenko09.roastlands.core.content;
 
-import java.util.Set;
+import java.util.Map;
 
-record ParseContext(String fileTopic, Set<String> knownTopics, int packMinJavaVersion, String source) {
+record ParseContext(String fileTopic, Map<String, Integer> keyPointCounts, int packMinJavaVersion, String source) {
 }

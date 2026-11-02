@@ -1,0 +1,8 @@
+islands:
+  - id: shore
+    title: Shore
+topics:
+  - id: core.types
+    title: Types
+    island: shore
+    keyPoints: [Covered point, Open point]

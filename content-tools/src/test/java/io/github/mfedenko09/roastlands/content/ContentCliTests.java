@@ -27,12 +27,26 @@ class ContentCliTests {
     }
 
     @Test
+    void coveragePrintsTheReportAndDoesNotFailOnAnUncoveredKeyPoint() {
+        assertThat(ContentCli.coverage(FIXTURES.resolve("uncovered-key-point"))).isEqualTo("""
+                core.types (questions: 1)
+                  0 Covered point: core.types.covered
+                  1 Open point: -
+                Uncovered key points: 1
+                  core.types 1 Open point
+                """);
+        assertThatCode(() -> ContentCli.run(
+                new String[] {"coverage", FIXTURES.resolve("uncovered-key-point").toString()}))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
     void wrongArgumentsPrintTheUsage() {
         assertThatThrownBy(() -> ContentCli.run(new String[] {}))
-                .isInstanceOf(IllegalArgumentException.class).hasMessage("usage: verify <packsRoot>");
+                .isInstanceOf(IllegalArgumentException.class).hasMessage("usage: verify|coverage <packsRoot>");
         assertThatThrownBy(() -> ContentCli.run(new String[] {"check", "x"}))
-                .isInstanceOf(IllegalArgumentException.class).hasMessage("usage: verify <packsRoot>");
+                .isInstanceOf(IllegalArgumentException.class).hasMessage("usage: verify|coverage <packsRoot>");
         assertThatThrownBy(() -> ContentCli.run(new String[] {"verify"}))
-                .isInstanceOf(IllegalArgumentException.class).hasMessage("usage: verify <packsRoot>");
+                .isInstanceOf(IllegalArgumentException.class).hasMessage("usage: verify|coverage <packsRoot>");
     }
 }

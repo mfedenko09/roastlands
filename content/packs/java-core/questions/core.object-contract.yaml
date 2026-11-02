@@ -2,6 +2,7 @@
   topic: core.object-contract
   type: TRUE_FALSE
   difficulty: 1
+  keyPoint: 0
   prompt: >-
     True or false: if two objects have the same hashCode(), then equals() must return true for them.
   correct: false
@@ -14,6 +15,7 @@
   topic: core.object-contract
   type: CODE_OUTPUT
   difficulty: 2
+  keyPoint: 0
   prompt: What does this code print?
   code: |
     import java.util.ArrayList;
@@ -57,6 +59,7 @@
   topic: core.object-contract
   type: CODE_OUTPUT
   difficulty: 3
+  keyPoint: 2
   prompt: What does this code print?
   code: |
     import java.math.BigDecimal;

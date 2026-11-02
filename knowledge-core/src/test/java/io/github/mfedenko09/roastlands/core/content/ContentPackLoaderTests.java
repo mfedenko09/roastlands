@@ -33,6 +33,7 @@ class ContentPackLoaderTests {
               topic: core.types
               type: CODE_OUTPUT
               difficulty: 1
+              keyPoint: 0
               prompt: What does this print?
               code: |
                 public class Main {}
@@ -49,6 +50,7 @@ class ContentPackLoaderTests {
               topic: core.types
               type: SINGLE_CHOICE
               difficulty: 2
+              keyPoint: 0
               prompt: Which one?
               options: [first, second, third]
               correct: 2
@@ -61,6 +63,7 @@ class ContentPackLoaderTests {
               topic: core.types
               type: MULTI_CHOICE
               difficulty: 3
+              keyPoint: 0
               prompt: Which ones?
               options: [first, second, third]
               correct: [0, 2]
@@ -73,6 +76,7 @@ class ContentPackLoaderTests {
               topic: core.types
               type: TRUE_FALSE
               difficulty: 1
+              keyPoint: 0
               prompt: Is it so?
               correct: false
               explanation: Because.
@@ -180,6 +184,14 @@ class ContentPackLoaderTests {
         assertThat(loader.load(packDir(), topics).questions().get(0).difficulty()).isEqualTo(difficulty);
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1})
+    void firstAndLastKeyPointIndexesAreAccepted(int keyPoint) throws IOException {
+        writeQuestions("core.types", CODE_OUTPUT.replace("keyPoint: 0", "keyPoint: " + keyPoint));
+
+        assertThat(loader.load(packDir(), topics).questions().get(0).keyPoint()).isEqualTo(keyPoint);
+    }
+
     @Test
     void fiveOptionsAreAccepted() throws IOException {
         writeQuestions("core.types", CODE_OUTPUT.replace("    - output: \"b\"\n",
@@ -209,6 +221,11 @@ class ContentPackLoaderTests {
                 error(CODE_OUTPUT.replace("difficulty: 1", "difficulty: 4"), codeLine + "difficulty must be 1, 2 or 3"),
                 error(CODE_OUTPUT.replace("difficulty: 1", "difficulty: 0"), codeLine + "difficulty must be 1, 2 or 3"),
                 error(CODE_OUTPUT.replace("  difficulty: 1\n", ""), codeLine + "difficulty is required"),
+                error(CODE_OUTPUT.replace("  keyPoint: 0\n", ""), codeLine + "keyPoint is required"),
+                error(CODE_OUTPUT.replace("keyPoint: 0", "keyPoint: 2"), codeLine
+                        + "keyPoint 2 does not exist, topic \"core.types\" has 2 key points"),
+                error(CODE_OUTPUT.replace("keyPoint: 0", "keyPoint: -1"), codeLine
+                        + "keyPoint -1 does not exist, topic \"core.types\" has 2 key points"),
                 error(CODE_OUTPUT.replace("  prompt: What does this print?\n", ""), codeLine + "prompt is required"),
                 error(CODE_OUTPUT.replace("  explanation: Because.\n", ""), codeLine + "explanation is required"),
                 error(CODE_OUTPUT.replace("Because.", "x".repeat(601)),
@@ -460,7 +477,7 @@ class ContentPackLoaderTests {
                 .islandId("shore")
                 .prerequisites(List.of())
                 .minJavaVersion(21)
-                .keyPoints(List.of())
+                .keyPoints(List.of("first", "second"))
                 .build();
     }
 }

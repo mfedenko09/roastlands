@@ -29,9 +29,11 @@ final class CliTestSupport {
               - id: basics
                 title: Basics
                 island: shore
+                keyPoints: [one]
               - id: deep
                 title: Deep Dive
                 island: cave
+                keyPoints: [one]
                 prerequisites: [basics]
             """;
 
@@ -40,6 +42,7 @@ final class CliTestSupport {
               topic: basics
               type: TRUE_FALSE
               difficulty: 1
+              keyPoint: 0
               prompt: True or false - Java is pass-by-value.
               correct: true
               explanation: Java copies the value of the argument, also for references.
@@ -48,6 +51,7 @@ final class CliTestSupport {
               topic: basics
               type: SINGLE_CHOICE
               difficulty: 2
+              keyPoint: 0
               prompt: Which keyword stops inheritance?
               options:
                 - abstract
@@ -60,6 +64,7 @@ final class CliTestSupport {
               topic: basics
               type: MULTI_CHOICE
               difficulty: 3
+              keyPoint: 0
               prompt: Which are primitive types?
               options:
                 - int
@@ -73,6 +78,7 @@ final class CliTestSupport {
               topic: basics
               type: CODE_OUTPUT
               difficulty: 3
+              keyPoint: 0
               prompt: What does this code print?
               code: |
                 public class Main {
@@ -95,6 +101,7 @@ final class CliTestSupport {
               topic: deep
               type: TRUE_FALSE
               difficulty: 1
+              keyPoint: 0
               prompt: True or false - a deep question.
               correct: false
               explanation: Because.

@@ -47,6 +47,14 @@ val verifyContent = tasks.register<JavaExec>("verifyContent") {
     inputs.dir(packsRoot)
 }
 
+tasks.register<JavaExec>("contentCoverage") {
+    group = "documentation"
+    description = "Prints every key point with the questions that cover it and lists uncovered key points"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "io.github.mfedenko09.roastlands.content.ContentCli"
+    args("coverage", packsRoot.asFile.path)
+}
+
 tasks.test {
     inputs.dir(packsRoot)
     inputs.file(topicMapDoc)

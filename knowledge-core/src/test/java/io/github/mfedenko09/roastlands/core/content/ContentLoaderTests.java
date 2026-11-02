@@ -23,6 +23,7 @@ class ContentLoaderTests {
               topic: basics
               type: TRUE_FALSE
               difficulty: 1
+              keyPoint: 0
               prompt: Is it so?
               correct: true
               explanation: Because.
@@ -38,8 +39,9 @@ class ContentLoaderTests {
     @Test
     void mergesQuestionsOfAllPacksInFolderOrderAndJoinsPackIds() throws IOException {
         writePack("a-pack", "a-pack", "islands: [{id: shore, title: Shore}]\ntopics:\n"
-                + "  - {id: basics, title: Basics, island: shore}\n", BASICS_QUESTION, "basics");
-        writePack("b-pack", "b-pack", "topics:\n  - {id: deep, title: Deep, island: shore, prerequisites: [basics]}\n",
+                + "  - {id: basics, title: Basics, island: shore, keyPoints: [one]}\n", BASICS_QUESTION, "basics");
+        writePack("b-pack", "b-pack",
+                "topics:\n  - {id: deep, title: Deep, island: shore, prerequisites: [basics], keyPoints: [one]}\n",
                 DEEP_QUESTION, "deep");
         Files.createDirectories(contentDir.resolve("packs").resolve("not-a-pack"));
 
@@ -99,7 +101,7 @@ class ContentLoaderTests {
 
     private void writeSamplePack() throws IOException {
         writePack("a-pack", "a-pack", "islands: [{id: shore, title: Shore}]\ntopics:\n"
-                + "  - {id: basics, title: Basics, island: shore}\n", BASICS_QUESTION, "basics");
+                + "  - {id: basics, title: Basics, island: shore, keyPoints: [one]}\n", BASICS_QUESTION, "basics");
     }
 
     private Path packIntoJar(Path jar) throws IOException {
