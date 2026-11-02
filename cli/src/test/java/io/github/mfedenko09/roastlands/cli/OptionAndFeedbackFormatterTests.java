@@ -56,6 +56,7 @@ class OptionAndFeedbackFormatterTests {
                 .masteryBefore(0.404)
                 .masteryAfter(0.0)
                 .topicsUnlocked(List.of())
+                .levelUp(List.of())
                 .build();
 
         assertThat(new FeedbackFormatter().format(question, result, new Colors(false))).isEqualTo("""

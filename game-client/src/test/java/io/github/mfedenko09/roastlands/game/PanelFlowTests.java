@@ -454,6 +454,45 @@ class PanelFlowTests {
     }
 
     @Test
+    void answerThatReachesANewLevelIsHandedOverOnceAndTheRewardIsSaved() {
+        saveProfileWithXp(390);
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
+
+        flow.pick(0);
+        flow.answer(Confidence.HIGH);
+        flow.markTooEasy();
+
+        assertThat(flow.takeLevelUps()).containsExactly(3);
+        assertThat(flow.takeLevelUps()).isEmpty();
+        assertThat(savedProfile().unlockedRewards()).containsExactly("cosmetic.scarf");
+    }
+
+    @Test
+    void answerWithoutANewLevelHandsOverNothing() {
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
+
+        flow.pick(0);
+        flow.answer(Confidence.HIGH);
+
+        assertThat(flow.takeLevelUps()).isEmpty();
+    }
+
+    @Test
+    void levelUpFromTheBonusOfAnEmptyQueueIsWaitingFromTheStart() throws IOException {
+        saveProfileWithXp(360);
+        Files.writeString(paths.contentDir().orElseThrow().resolve("packs/demo/questions/basics.yaml"), "[]\n");
+
+        PanelFlow flow = GameStartup.open(paths, TODAY).flow();
+
+        assertThat(flow.takeLevelUps()).containsExactly(3);
+    }
+
+    private void saveProfileWithXp(long xp) {
+        new ProfileStore(paths.profileDir(), Set.of("basics"))
+                .save(PlayerProfile.empty(Set.of("basics")).toBuilder().xp(xp).build());
+    }
+
+    @Test
     void listenersHearEachAnswerAndTooEasyMark() {
         PanelFlow flow = GameStartup.open(paths, TODAY).flow();
         int[] heard = {0};

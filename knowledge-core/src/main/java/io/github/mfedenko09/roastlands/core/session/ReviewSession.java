@@ -7,6 +7,9 @@ import io.github.mfedenko09.roastlands.core.content.ContentPack;
 import io.github.mfedenko09.roastlands.core.content.Question;
 import io.github.mfedenko09.roastlands.core.profile.PlayerProfile;
 import io.github.mfedenko09.roastlands.core.profile.Streak;
+import io.github.mfedenko09.roastlands.core.progress.Levels;
+import io.github.mfedenko09.roastlands.core.progress.Reward;
+import io.github.mfedenko09.roastlands.core.progress.RewardTable;
 import io.github.mfedenko09.roastlands.core.progress.StreakRules;
 import io.github.mfedenko09.roastlands.core.progress.XpRules;
 import io.github.mfedenko09.roastlands.core.srs.CardState;
@@ -35,11 +38,14 @@ public final class ReviewSession {
     private final AnswerChecker answerChecker = new AnswerChecker();
     private final XpRules xpRules = new XpRules();
     private final StreakRules streakRules = new StreakRules();
+    private final Levels levels = new Levels();
+    private final RewardTable rewardTable = new RewardTable();
     private final TopicGraph topics;
     private final MasteryBoard masteryBoard;
     private final LocalDate today;
     private final List<Question> queue;
     private final boolean questCompletedAtStart;
+    private final List<Integer> levelUpAtStart;
 
     private PlayerProfile profile;
     private PlayerProfile profileBeforeAnswer;
@@ -57,8 +63,9 @@ public final class ReviewSession {
         this.today = today;
         this.queue = queue;
         this.masteryBoard = new MasteryBoard(questions);
-        this.profile = queue.isEmpty() ? withQuestCompleted(profile) : profile;
+        this.profile = queue.isEmpty() ? withRewards(profile, withQuestCompleted(profile)) : profile;
         this.questCompletedAtStart = isQuestCompleted(profile, this.profile);
+        this.levelUpAtStart = levelsReached(profile, this.profile);
     }
 
     public static ReviewSession start(
@@ -105,6 +112,10 @@ public final class ReviewSession {
 
     public boolean questCompletedAtStart() {
         return questCompletedAtStart;
+    }
+
+    public List<Integer> levelUpAtStart() {
+        return levelUpAtStart;
     }
 
     public SessionProgress progress() {
@@ -168,7 +179,8 @@ public final class ReviewSession {
                 .unlockedTopics(unlocked)
                 .xp(base.xp() + xpRules.forAnswer(correct, question.difficulty()))
                 .build();
-        profile = position == queue.size() - 1 ? withQuestCompleted(answered) : answered;
+        PlayerProfile finished = position == queue.size() - 1 ? withQuestCompleted(answered) : answered;
+        profile = withRewards(base, finished);
         return AnswerResult.builder()
                 .correct(correct)
                 .correctAnswer(question.correct())
@@ -180,6 +192,7 @@ public final class ReviewSession {
                 .topicsUnlocked(unlocked.stream().filter(id -> !base.unlockedTopics().contains(id)).toList())
                 .xpGained(profile.xp() - base.xp())
                 .questCompleted(isQuestCompleted(base, profile))
+                .levelUp(levelsReached(base, profile))
                 .build();
     }
 
@@ -189,6 +202,22 @@ public final class ReviewSession {
             return player;
         }
         return player.toBuilder().streak(streak).xp(player.xp() + XpRules.QUEST_BONUS).build();
+    }
+
+    private PlayerProfile withRewards(PlayerProfile before, PlayerProfile after) {
+        List<Integer> reached = levelsReached(before, after);
+        if (reached.isEmpty()) {
+            return after;
+        }
+        Set<String> unlockedRewards = new LinkedHashSet<>(after.unlockedRewards());
+        rewardTable.forLevels(reached.get(0) - 1, reached.get(reached.size() - 1)).stream()
+                .map(Reward::id)
+                .forEach(unlockedRewards::add);
+        return after.toBuilder().unlockedRewards(unlockedRewards).build();
+    }
+
+    private List<Integer> levelsReached(PlayerProfile before, PlayerProfile after) {
+        return levels.reached(before.xp(), after.xp());
     }
 
     private static boolean isQuestCompleted(PlayerProfile before, PlayerProfile after) {

@@ -38,6 +38,7 @@ class DayTallyTests {
                 .correct(correct)
                 .correctAnswer(new SingleIndex(0))
                 .topicsUnlocked(List.of(unlocked))
+                .levelUp(List.of())
                 .build();
     }
 }

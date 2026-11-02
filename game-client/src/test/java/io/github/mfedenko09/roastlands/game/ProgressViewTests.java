@@ -48,7 +48,13 @@ class ProgressViewTests {
     void statsShowTheLevelFromXpAndTheCurrentStreak() {
         PlayerProfile profile = fresh().toBuilder().xp(400).streak(new Streak(5, 7, TODAY)).build();
 
-        assertThat(view.stats(profile)).isEqualTo(new PlayerStatsView("Lv 3  |  ", "5"));
+        assertThat(view.stats(profile)).isEqualTo(new PlayerStatsView("Lv 3  |  Junior  |  ", "5"));
+    }
+
+    @Test
+    void statsShowTheTitleOfTheLevel() {
+        assertThat(view.stats(fresh().toBuilder().xp(2500).build()).level()).isEqualTo("Lv 6  |  Middle  |  ");
+        assertThat(view.stats(fresh().toBuilder().xp(8100).build()).level()).isEqualTo("Lv 10  |  Senior  |  ");
     }
 
     @Test
@@ -62,7 +68,7 @@ class ProgressViewTests {
 
     @Test
     void freshPlayerIsLevelOneWithNoStreak() {
-        assertThat(view.stats(fresh())).isEqualTo(new PlayerStatsView("Lv 1  |  ", "0"));
+        assertThat(view.stats(fresh())).isEqualTo(new PlayerStatsView("Lv 1  |  Junior  |  ", "0"));
     }
 
     @Test

@@ -39,7 +39,13 @@ the session in memory. Progress is saved after every answer; a failed save shows
 
 M opens the progress map: all islands with level, mastery and what each locked topic needs. Click an island header or
 press Up/Down to open another section; M or Esc closes the map. The top-left corner always shows `Today done/total`,
-then the level and the streak in days. A skipped day shows the streak as 0 until the next finished queue.
+then the level with its title (`Lv 3 | Junior`) and the streak in days. A skipped day shows the streak as 0 until the
+next finished queue.
+
+Every level gives a reward from `RewardTable`: a title (Junior 1-4, Middle 5-9, Senior 10-19, Staff 20+, read from
+the same table) or a cosmetic that recolours one part of the character. A banner with the new level and reward shows
+for 3 seconds after the question panel closes. A level reached by the bonus of an empty queue shows the banner at game
+start.
 
 The game reads the content packed into its jar and the profile from `ProfilePaths.defaultDir()`. Override with
 `-Droastlands.content=<dir>` and `-Droastlands.profile=<dir>`.
@@ -91,7 +97,9 @@ artifact. GitHub gives it as `roastlands-windows.zip`.
 
 ## Player profile
 
-`ProfileStore` keeps progress (card states, unlocked topics, streak, XP) in one JSON file with a `schemaVersion`.
+`ProfileStore` keeps progress (card states, unlocked topics, streak, XP, unlocked rewards) in one JSON file with a
+`schemaVersion`. A version 1 file is read as version 2 with the rewards of the levels its XP already passed, and
+saved as version 2.
 The directory comes from `ProfilePaths.defaultDir()`: `%APPDATA%\Roastlands` on Windows, `~/.roastlands` elsewhere.
 
 A save writes `profile.json.tmp`, flushes it to disk, copies the current file to `profile.json.bak` and moves the
@@ -122,7 +130,9 @@ position, difficulty and id. The limit of new questions is per day: cards first 
 (`CardState.firstSeenDate`) are subtracted from it, so a second run on the same day only offers what is left.
 Cards saved before `firstSeenDate` existed have no such date, so they never reduce the daily limit.
 A topic that opens during the session adds its questions at the next start.
-`markTooEasy()` re-grades the last correct answer as EASY. The class is not thread-safe.
+`markTooEasy()` re-grades the last correct answer as EASY. `AnswerResult.levelUp` lists the levels the answer (with the
+quest bonus, if any) reached. Their rewards from `RewardTable` are added to `PlayerProfile.unlockedRewards` once;
+levels reached by the bonus of an empty queue are in `levelUpAtStart()`. The class is not thread-safe.
 
 ## Console client
 
