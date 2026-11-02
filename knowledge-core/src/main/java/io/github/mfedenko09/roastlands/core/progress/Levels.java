@@ -1,5 +1,8 @@
 package io.github.mfedenko09.roastlands.core.progress;
 
+import java.util.List;
+import java.util.stream.IntStream;
+
 public final class Levels {
 
     private static final long XP_SCALE = 100;
@@ -15,5 +18,9 @@ public final class Levels {
         }
         long stepsAboveFirst = level - FIRST_LEVEL;
         return XP_SCALE * stepsAboveFirst * stepsAboveFirst;
+    }
+
+    public List<Integer> reached(long xpBefore, long xpAfter) {
+        return IntStream.rangeClosed(levelOf(xpBefore) + 1, levelOf(xpAfter)).boxed().toList();
     }
 }

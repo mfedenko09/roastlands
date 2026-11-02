@@ -54,7 +54,7 @@ class ProfileStoreTests {
         assertThat(result.profile().unlockedTopics()).containsExactlyInAnyOrder("core.types", "core.oop");
         assertThat(result.profile().streak()).isEqualTo(new Streak(0, 0, null));
         assertThat(result.profile().xp()).isZero();
-        assertThat(result.profile().schemaVersion()).isEqualTo(1);
+        assertThat(result.profile().schemaVersion()).isEqualTo(2);
     }
 
     @Test
@@ -110,7 +110,7 @@ class ProfileStoreTests {
         store(dir).save(profile);
 
         String content = read("profile.json");
-        assertThat(content).contains("\n  \"schemaVersion\" : 1,");
+        assertThat(content).contains("\n  \"schemaVersion\" : 2,");
         assertThat(content.indexOf("\"cardId\" : \"a\"")).isLessThan(content.indexOf("\"cardId\" : \"b\""));
         assertThat(content.indexOf("\"y\"")).isLessThan(content.indexOf("\"z\""));
         assertThat(content).contains("\"dueDate\" : \"2026-11-07\"");
@@ -170,7 +170,7 @@ class ProfileStoreTests {
         ProfileStore store = store(dir);
         store.save(profileWithCards("a"));
         store.save(profileWithCards("a"));
-        Files.writeString(dir.resolve("profile.json"), "{ \"schemaVersion\": 2, \"somethingNew\": true }");
+        Files.writeString(dir.resolve("profile.json"), "{ \"schemaVersion\": 3, \"somethingNew\": true }");
 
         assertThatThrownBy(store::load)
                 .isInstanceOf(UnsupportedProfileVersionException.class)
@@ -179,7 +179,7 @@ class ProfileStoreTests {
 
     @Test
     void saveRefusesToOverwriteProfileOfNewerVersion() throws IOException {
-        String newer = "{ \"schemaVersion\": 2 }";
+        String newer = "{ \"schemaVersion\": 3 }";
         Files.writeString(dir.resolve("profile.json"), newer);
 
         assertThatThrownBy(() -> store(dir).save(profileWithCards("a")))
@@ -190,7 +190,7 @@ class ProfileStoreTests {
     }
 
     @Test
-    void handWrittenFileLoadsIntoExpectedProfile() throws IOException {
+    void versionOneFileBelowLevelThreeLoadsMigratedWithNoRewards() throws IOException {
         Files.writeString(dir.resolve("profile.json"), HAND_WRITTEN);
 
         PlayerProfile loaded = store(dir).load().profile();
@@ -205,12 +205,51 @@ class ProfileStoreTests {
                 .lapses(0)
                 .build();
         assertThat(loaded).isEqualTo(PlayerProfile.builder()
-                .schemaVersion(1)
+                .schemaVersion(2)
                 .cards(Map.of(card.cardId(), card))
                 .unlockedTopics(Set.of("core.types", "core.oop"))
                 .streak(new Streak(5, 9, LocalDate.of(2026, 11, 1)))
                 .xp(120)
+                .unlockedRewards(Set.of())
                 .build());
+    }
+
+    @Test
+    void versionOneFileGetsTheRewardsOfTheLevelsAlreadyPassed() throws IOException {
+        Files.writeString(dir.resolve("profile.json"), HAND_WRITTEN.replace("\"xp\": 120", "\"xp\": 2500"));
+
+        assertThat(store(dir).load().profile().unlockedRewards())
+                .containsExactlyInAnyOrder("cosmetic.scarf", "cosmetic.cap", "title.middle");
+    }
+
+    @Test
+    void versionOneFileAtTheLevelBoundaryGetsTheRewardOfThatLevel() throws IOException {
+        Files.writeString(dir.resolve("profile.json"), HAND_WRITTEN.replace("\"xp\": 120", "\"xp\": 400"));
+
+        assertThat(store(dir).load().profile().unlockedRewards()).containsExactly("cosmetic.scarf");
+    }
+
+    @Test
+    void versionOneFileIsSavedBackAsVersionTwo() throws IOException {
+        Files.writeString(dir.resolve("profile.json"), HAND_WRITTEN);
+        ProfileStore store = store(dir);
+
+        store.save(store.load().profile());
+
+        assertThat(read("profile.json")).contains("\"schemaVersion\" : 2").contains("\"unlockedRewards\" : [ ]");
+    }
+
+    @Test
+    void unlockedRewardsAreWrittenSortedAndReadBack() throws IOException {
+        PlayerProfile saved = profileWithCards("a").toBuilder()
+                .unlockedRewards(Set.of("cosmetic.scarf", "cosmetic.cap"))
+                .build();
+
+        store(dir).save(saved);
+
+        assertThat(read("profile.json")).contains("\"unlockedRewards\" : [ \"cosmetic.cap\", \"cosmetic.scarf\" ]");
+        assertThat(store(dir).load().profile().unlockedRewards()).containsExactlyInAnyOrder(
+                "cosmetic.cap", "cosmetic.scarf");
     }
 
     @Test
@@ -246,7 +285,11 @@ class ProfileStoreTests {
                 "{ \"schemaVersion\": 1, \"cards\": [{\"cardId\":\"a\"},{\"cardId\":\"a\"}], \"unlockedTopics\": [], "
                         + "\"streak\": {\"current\":0,\"best\":0}, \"xp\": 0 }",
                 "{ \"schemaVersion\": 1, \"cards\": [], \"unlockedTopics\": [], \"streak\": "
-                        + "{\"current\":0,\"best\":0,\"lastCompletedDate\":\"yesterday\"}, \"xp\": 0 }");
+                        + "{\"current\":0,\"best\":0,\"lastCompletedDate\":\"yesterday\"}, \"xp\": 0 }",
+                "{ \"schemaVersion\": 2, \"cards\": [], \"unlockedTopics\": [], \"streak\": "
+                        + "{\"current\":0,\"best\":0}, \"xp\": 0 }",
+                "{ \"schemaVersion\": 2, \"cards\": [], \"unlockedTopics\": [], \"streak\": "
+                        + "{\"current\":0,\"best\":0}, \"xp\": 0, \"unlockedRewards\": [null] }");
 
         for (String content : broken) {
             Files.writeString(dir.resolve("profile.json"), content);
@@ -369,10 +412,11 @@ class ProfileStoreTests {
                     .build());
         }
         return PlayerProfile.builder()
-                .schemaVersion(1)
+                .schemaVersion(2)
                 .cards(cards)
                 .unlockedTopics(ROOTS)
                 .streak(Streak.none())
+                .unlockedRewards(Set.of())
                 .build();
     }
 }

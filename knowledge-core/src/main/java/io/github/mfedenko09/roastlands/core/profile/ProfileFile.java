@@ -9,7 +9,12 @@ import java.util.Set;
 import java.util.TreeSet;
 
 record ProfileFile(
-        Integer schemaVersion, List<CardState> cards, Set<String> unlockedTopics, Streak streak, Long xp) {
+        Integer schemaVersion,
+        List<CardState> cards,
+        Set<String> unlockedTopics,
+        Streak streak,
+        Long xp,
+        Set<String> unlockedRewards) {
 
     static ProfileFile of(PlayerProfile profile) {
         List<CardState> sortedCards = profile.cards().values().stream()
@@ -20,12 +25,14 @@ record ProfileFile(
                 sortedCards,
                 new TreeSet<>(profile.unlockedTopics()),
                 profile.streak(),
-                profile.xp());
+                profile.xp(),
+                new TreeSet<>(profile.unlockedRewards()));
     }
 
     boolean isComplete() {
         return schemaVersion != null && cards != null && unlockedTopics != null && streak != null && xp != null
-                && !cards.contains(null) && !unlockedTopics.contains(null);
+                && unlockedRewards != null && !cards.contains(null) && !unlockedTopics.contains(null)
+                && !unlockedRewards.contains(null);
     }
 
     PlayerProfile toProfile() {
@@ -41,6 +48,7 @@ record ProfileFile(
                 .unlockedTopics(unlockedTopics)
                 .streak(streak)
                 .xp(xp)
+                .unlockedRewards(unlockedRewards)
                 .build();
     }
 }

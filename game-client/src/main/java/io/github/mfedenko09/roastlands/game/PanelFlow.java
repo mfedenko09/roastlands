@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 final class PanelFlow {
@@ -30,6 +32,7 @@ final class PanelFlow {
     private final String notice;
     private final DayTally tally = new DayTally();
     private final List<Runnable> answerListeners = new ArrayList<>();
+    private final SortedSet<Integer> pendingLevelUps = new TreeSet<>();
 
     private PanelStep step;
     private Question question;
@@ -43,6 +46,7 @@ final class PanelFlow {
         this.store = store;
         this.topicTitles = topics.topics().stream().collect(Collectors.toMap(Topic::id, Topic::title));
         this.notice = restoredFromBackup ? RESTORED_NOTICE : null;
+        pendingLevelUps.addAll(session.levelUpAtStart());
         showCurrent();
         if (session.questCompletedAtStart()) {
             save();
@@ -59,6 +63,12 @@ final class PanelFlow {
 
     SessionProgress progress() {
         return session.progress();
+    }
+
+    List<Integer> takeLevelUps() {
+        List<Integer> levelUps = List.copyOf(pendingLevelUps);
+        pendingLevelUps.clear();
+        return levelUps;
     }
 
     PanelStep step() {
@@ -155,6 +165,7 @@ final class PanelFlow {
                 ? session.answerTrueFalse(draft.selected().contains(CorrectIndexes.TRUE_INDEX), confidence)
                 : session.answer(draft.selected(), confidence);
         tally.record(result);
+        pendingLevelUps.addAll(result.levelUp());
         markedTooEasy = false;
         save();
         step = PanelStep.RESULT;
@@ -166,6 +177,7 @@ final class PanelFlow {
         }
         result = session.markTooEasy();
         tally.replaceLast(result);
+        pendingLevelUps.addAll(result.levelUp());
         markedTooEasy = true;
         save();
     }

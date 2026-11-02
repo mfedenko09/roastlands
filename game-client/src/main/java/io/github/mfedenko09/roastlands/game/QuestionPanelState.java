@@ -78,6 +78,10 @@ class QuestionPanelState extends BaseAppState {
         if (player != null) {
             player.setFrozen(false);
         }
+        LevelUpBannerState banner = getStateManager().getState(LevelUpBannerState.class);
+        if (banner != null) {
+            banner.show();
+        }
     }
 
     @Override

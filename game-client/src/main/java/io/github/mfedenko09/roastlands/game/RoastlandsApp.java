@@ -31,7 +31,7 @@ class RoastlandsApp extends SimpleApplication {
         inputManager.deleteMapping(INPUT_MAPPING_EXIT);
         stateManager.attach(new BulletAppState());
         InputBindings inputBindings = new InputBindings(inputManager);
-        PlayerState player = new PlayerState(inputBindings);
+        PlayerState player = new PlayerState(inputBindings, game.flow());
         inputBindings.onAction(Action.FULLSCREEN, this::toggleFullscreen);
         QuestionPanelState panel = new QuestionPanelState(game.flow(), inputBindings);
         ProgressMapState map = new ProgressMapState(game, inputBindings);
@@ -43,6 +43,9 @@ class RoastlandsApp extends SimpleApplication {
         stateManager.attach(panel);
         stateManager.attach(map);
         stateManager.attach(new HudState(game));
+        LevelUpBannerState banner = new LevelUpBannerState(game.flow());
+        stateManager.attach(banner);
+        banner.show();
     }
 
     private void cancel(QuestionPanelState panel, ProgressMapState map) {

@@ -8,6 +8,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.InputManager;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 
 class PlayerState extends PhysicsAwareState {
 
@@ -19,19 +20,25 @@ class PlayerState extends PhysicsAwareState {
     private static final float CAMERA_DISTANCE = 6f;
 
     private final InputBindings inputBindings;
+    private final PanelFlow flow;
     private final Node player = new Node("player");
     private final BetterCharacterControl character = new BetterCharacterControl(RADIUS, HEIGHT, MASS);
     private MovementInput input = MovementInput.NONE;
+    private Spatial model;
     private ChaseCamera chaseCamera;
     private boolean frozen;
 
-    PlayerState(InputBindings inputBindings) {
+    PlayerState(InputBindings inputBindings, PanelFlow flow) {
         this.inputBindings = inputBindings;
+        this.flow = flow;
     }
 
     @Override
     protected void initialize(Application app) {
-        player.attachChild(app.getAssetManager().loadModel(CHARACTER_MODEL));
+        model = app.getAssetManager().loadModel(CHARACTER_MODEL);
+        player.attachChild(model);
+        dress();
+        flow.onAnswer(this::dress);
         character.setJumpForce(new Vector3f(0f, JUMP_FORCE, 0f));
         player.addControl(character);
         inputBindings.onPlayerAction(this::onAction);
@@ -99,6 +106,10 @@ class PlayerState extends PhysicsAwareState {
 
     void releaseKeys() {
         input = MovementInput.NONE;
+    }
+
+    private void dress() {
+        CosmeticLook.apply(model, flow.profile().unlockedRewards());
     }
 
     private void hideCursor() {

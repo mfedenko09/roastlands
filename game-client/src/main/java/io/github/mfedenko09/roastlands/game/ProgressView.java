@@ -5,6 +5,7 @@ import io.github.mfedenko09.roastlands.core.content.Question;
 import io.github.mfedenko09.roastlands.core.profile.PlayerProfile;
 import io.github.mfedenko09.roastlands.core.progress.Levels;
 import io.github.mfedenko09.roastlands.core.progress.StreakRules;
+import io.github.mfedenko09.roastlands.core.progress.Titles;
 import io.github.mfedenko09.roastlands.core.session.IslandProgress;
 import io.github.mfedenko09.roastlands.core.session.ProgressReport;
 import io.github.mfedenko09.roastlands.core.session.ProgressReporter;
@@ -28,6 +29,7 @@ final class ProgressView {
     private static final double ROUNDING_TOLERANCE = 1e-9;
 
     private final Levels levels = new Levels();
+    private final Titles titles = new Titles();
     private final StreakRules streakRules = new StreakRules();
     private final ProgressReporter reporter;
     private final LocalDate today;
@@ -58,8 +60,9 @@ final class ProgressView {
     }
 
     PlayerStatsView stats(PlayerProfile profile) {
-        String level = "Lv " + levels.levelOf(profile.xp()) + PanelHeader.SEPARATOR;
-        return new PlayerStatsView(level, String.valueOf(streakRules.currentOn(profile.streak(), today)));
+        int level = levels.levelOf(profile.xp());
+        String levelText = "Lv " + level + PanelHeader.SEPARATOR + titles.of(level) + PanelHeader.SEPARATOR;
+        return new PlayerStatsView(levelText, String.valueOf(streakRules.currentOn(profile.streak(), today)));
     }
 
     private ProgressReport report(PlayerProfile profile) {

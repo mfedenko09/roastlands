@@ -15,21 +15,23 @@ class PlayerProfileTests {
         PlayerProfile empty = PlayerProfile.empty(Set.of("core.types"));
 
         assertThat(empty).isEqualTo(PlayerProfile.builder()
-                .schemaVersion(1)
+                .schemaVersion(2)
                 .cards(Map.of())
                 .unlockedTopics(Set.of("core.types"))
                 .streak(new Streak(0, 0, null))
                 .xp(0)
+                .unlockedRewards(Set.of())
                 .build());
     }
 
     @Test
     void cardStoredUnderAnotherIdIsRejected() {
         assertThatThrownBy(() -> PlayerProfile.builder()
-                        .schemaVersion(1)
+                        .schemaVersion(2)
                         .cards(Map.of("a", CardState.newCard("b")))
                         .unlockedTopics(Set.of())
                         .streak(Streak.none())
+                        .unlockedRewards(Set.of())
                         .build())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("\"a\"")

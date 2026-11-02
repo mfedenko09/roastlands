@@ -520,6 +520,73 @@ class ReviewSessionTests {
         assertThat(session.profile().streak()).isEqualTo(Streak.none());
     }
 
+    @Test
+    void answerThatReachesLevelThreeGrantsTheScarfOnceAndReportsLevelUp() {
+        PlayerProfile profile = PlayerProfile.empty(Set.of(TYPES)).toBuilder().xp(399).build();
+        ReviewSession session = start(profile, twoQuestions(), SessionLimits.DEFAULT);
+
+        AnswerResult result = session.answer(Set.of(1), Confidence.HIGH);
+
+        assertThat(result.levelUp()).containsExactly(3);
+        assertThat(session.profile().xp()).isEqualTo(419);
+        assertThat(session.profile().unlockedRewards()).containsExactly("cosmetic.scarf");
+        ReviewSession later = start(session.profile(), twoQuestions(), SessionLimits.DEFAULT);
+        assertThat(later.answer(Set.of(1), Confidence.HIGH).levelUp()).isEmpty();
+        assertThat(later.profile().unlockedRewards()).containsExactly("cosmetic.scarf");
+    }
+
+    @Test
+    void levelWithoutRewardIsReportedButGrantsNothing() {
+        PlayerProfile profile = PlayerProfile.empty(Set.of(TYPES)).toBuilder().xp(90).build();
+        ReviewSession session = start(profile, twoQuestions(), SessionLimits.DEFAULT);
+
+        AnswerResult result = session.answer(Set.of(1), Confidence.HIGH);
+
+        assertThat(result.levelUp()).containsExactly(2);
+        assertThat(session.profile().unlockedRewards()).isEmpty();
+    }
+
+    @Test
+    void questBonusCanCarryThePlayerOverALevel() {
+        PlayerProfile profile = PlayerProfile.empty(Set.of(TYPES)).toBuilder().xp(345).build();
+        ReviewSession session = startOnNov2(profile, List.of(question("t-1", TYPES, 1)));
+
+        AnswerResult result = session.answer(Set.of(1), Confidence.HIGH);
+
+        assertThat(result.levelUp()).containsExactly(3);
+        assertThat(session.profile().xp()).isEqualTo(405);
+        assertThat(session.profile().unlockedRewards()).containsExactly("cosmetic.scarf");
+    }
+
+    @Test
+    void markingTheLevelUpAnswerTooEasyKeepsTheSingleReward() {
+        PlayerProfile profile = PlayerProfile.empty(Set.of(TYPES)).toBuilder().xp(399).build();
+        ReviewSession session = start(profile, twoQuestions(), SessionLimits.DEFAULT);
+        session.answer(Set.of(1), Confidence.HIGH);
+
+        AnswerResult easy = session.markTooEasy();
+
+        assertThat(easy.levelUp()).containsExactly(3);
+        assertThat(session.profile().unlockedRewards()).containsExactly("cosmetic.scarf");
+    }
+
+    @Test
+    void emptyQueueBonusThatReachesANewLevelGrantsItsRewardAtStart() {
+        PlayerProfile profile = PlayerProfile.empty(Set.of(TYPES)).toBuilder().xp(360).build();
+
+        ReviewSession session = startOnNov2(profile, List.of());
+
+        assertThat(session.levelUpAtStart()).containsExactly(3);
+        assertThat(session.profile().unlockedRewards()).containsExactly("cosmetic.scarf");
+    }
+
+    @Test
+    void sessionWithoutLevelUpAtStartReportsNone() {
+        ReviewSession session = startOnNov2(PlayerProfile.empty(Set.of(TYPES)), twoQuestions());
+
+        assertThat(session.levelUpAtStart()).isEmpty();
+    }
+
     private List<Question> twoQuestions() {
         return List.of(question("t-1", TYPES, 2), question("t-2", TYPES, 2));
     }
