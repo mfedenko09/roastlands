@@ -8,10 +8,12 @@ import io.github.mfedenko09.roastlands.core.content.ExceptionOption;
 import io.github.mfedenko09.roastlands.core.content.Question;
 import io.github.mfedenko09.roastlands.core.content.QuestionType;
 import io.github.mfedenko09.roastlands.core.content.SingleIndex;
+import io.github.mfedenko09.roastlands.core.topic.TopicGraph;
 import io.github.mfedenko09.roastlands.core.topic.TopicMapLoader;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -19,21 +21,28 @@ class JavaCoreQuestionsTests {
 
     private static final Path PACKS_ROOT = Path.of("..", "content", "packs");
 
+    private static final int MIN_QUESTIONS_PER_TOPIC = 5;
+
+    private static final int RARE_LEVEL_DIVISOR = 6;
+
+    private static final Set<String> FINISHED_TOPICS = Set.of("core.nested-classes", "core.modern-types");
+
+    private final TopicGraph topics = new TopicMapLoader().load(PACKS_ROOT);
+
     private final List<Question> questions = new ContentPackLoader()
-            .load(PACKS_ROOT.resolve("java-core"), new TopicMapLoader().load(PACKS_ROOT))
+            .load(PACKS_ROOT.resolve("java-core"), topics)
             .questions();
 
     @Test
-    void firstPackHasThirtyQuestionsSpreadOverTenTopics() {
-        Map<String, Long> perTopic = questions.stream()
-                .collect(Collectors.groupingBy(Question::topic, Collectors.counting()));
+    void finishedTopicsHaveEnoughQuestionsAndEveryKeyPointCovered() {
+        Map<String, List<Question>> perTopic = questions.stream().collect(Collectors.groupingBy(Question::topic));
 
-        assertThat(perTopic).containsExactlyInAnyOrderEntriesOf(Map.ofEntries(
-                Map.entry("core.types", 4L), Map.entry("core.strings", 4L), Map.entry("core.oop", 4L),
-                Map.entry("core.object-contract", 3L), Map.entry("core.exceptions", 4L),
-                Map.entry("core.nested-classes", 1L), Map.entry("generics.basics", 2L),
-                Map.entry("collections.lists", 2L), Map.entry("collections.hashing", 3L),
-                Map.entry("collections.iteration", 3L)));
+        assertThat(topics.topics()).filteredOn(topic -> FINISHED_TOPICS.contains(topic.id())).allSatisfy(topic -> {
+            List<Question> own = perTopic.get(topic.id());
+            assertThat(own).as(topic.id()).hasSizeGreaterThanOrEqualTo(MIN_QUESTIONS_PER_TOPIC);
+            assertThat(own.stream().map(Question::keyPoint).distinct().count()).as(topic.id())
+                    .isEqualTo(topic.keyPoints().size());
+        });
     }
 
     @Test
@@ -41,7 +50,7 @@ class JavaCoreQuestionsTests {
         Map<QuestionType, Long> perType = questions.stream()
                 .collect(Collectors.groupingBy(Question::type, Collectors.counting()));
 
-        assertThat(perType.get(QuestionType.CODE_OUTPUT)).isGreaterThanOrEqualTo(20);
+        assertThat(perType.get(QuestionType.CODE_OUTPUT) * 3).isGreaterThanOrEqualTo(questions.size() * 2L);
         assertThat(perType.get(QuestionType.SINGLE_CHOICE)).isGreaterThanOrEqualTo(1);
         assertThat(perType.get(QuestionType.MULTI_CHOICE)).isGreaterThanOrEqualTo(1);
         assertThat(perType.get(QuestionType.TRUE_FALSE)).isGreaterThanOrEqualTo(1);
@@ -58,13 +67,13 @@ class JavaCoreQuestionsTests {
     }
 
     @Test
-    void difficultyMixIsAboutEightFourteenEight() {
+    void mediumIsTheLargestDifficultyAndNoLevelIsRare() {
         Map<Integer, Long> perDifficulty = questions.stream()
                 .collect(Collectors.groupingBy(Question::difficulty, Collectors.counting()));
 
-        assertThat(perDifficulty.get(1)).isBetween(7L, 9L);
-        assertThat(perDifficulty.get(2)).isBetween(13L, 15L);
-        assertThat(perDifficulty.get(3)).isBetween(7L, 9L);
+        assertThat(perDifficulty.get(2)).isGreaterThan(perDifficulty.get(1)).isGreaterThan(perDifficulty.get(3));
+        assertThat(perDifficulty.get(1) * RARE_LEVEL_DIVISOR).isGreaterThanOrEqualTo(questions.size());
+        assertThat(perDifficulty.get(3) * RARE_LEVEL_DIVISOR).isGreaterThanOrEqualTo(questions.size());
     }
 
     @Test

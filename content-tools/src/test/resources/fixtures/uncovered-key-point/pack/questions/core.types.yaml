@@ -1,0 +1,9 @@
+- id: core.types.covered
+  topic: core.types
+  type: TRUE_FALSE
+  difficulty: 1
+  keyPoint: 0
+  prompt: Is it so?
+  correct: true
+  explanation: Because.
+  reference: JLS §1.1

@@ -2,6 +2,7 @@
   topic: core.types
   type: CODE_OUTPUT
   difficulty: 1
+  keyPoint: 0
   prompt: What does this code print?
   code: |
     public class Main {

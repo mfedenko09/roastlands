@@ -34,12 +34,14 @@ class PanelFlowTests {
               - id: basics
                 title: Basics
                 island: shore
+                keyPoints: [one]
             """;
     private static final String QUESTIONS = """
             - id: basics.tf
               topic: basics
               type: TRUE_FALSE
               difficulty: 1
+              keyPoint: 0
               prompt: Is Java pass-by-value?
               correct: true
               explanation: Java copies the value of the argument.
@@ -48,6 +50,7 @@ class PanelFlowTests {
               topic: basics
               type: SINGLE_CHOICE
               difficulty: 2
+              keyPoint: 0
               prompt: Which one?
               options: [first, second, third]
               correct: 1
@@ -57,6 +60,7 @@ class PanelFlowTests {
               topic: basics
               type: MULTI_CHOICE
               difficulty: 3
+              keyPoint: 0
               prompt: Which ones?
               options: [first, second, third]
               correct: [0, 2]
@@ -300,7 +304,8 @@ class PanelFlowTests {
     void tooEasyKeepsTheTopicsUnlockedByTheAnswer() throws IOException {
         Files.writeString(paths.contentDir().orElseThrow().resolve("packs").resolve("demo").resolve("topics.yaml"),
                 TOPICS
-                + "  - id: deep\n    title: Deep\n    island: shore\n    prerequisites: [basics]\n");
+                + "  - id: deep\n    title: Deep\n    island: shore\n    keyPoints: [one]\n"
+                + "    prerequisites: [basics]\n");
         PanelFlow flow = openAtMultiChoice();
         flow.pick(0);
         flow.pick(2);

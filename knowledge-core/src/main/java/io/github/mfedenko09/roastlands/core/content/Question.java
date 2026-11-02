@@ -9,6 +9,7 @@ public record Question(
         String topic,
         QuestionType type,
         int difficulty,
+        int keyPoint,
         String prompt,
         String code,
         List<Option> options,

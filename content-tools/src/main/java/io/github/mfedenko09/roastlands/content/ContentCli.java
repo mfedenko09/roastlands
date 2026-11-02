@@ -15,7 +15,8 @@ import java.util.stream.Stream;
 public final class ContentCli {
 
     private static final String VERIFY = "verify";
-    private static final String USAGE = "usage: verify <packsRoot>";
+    private static final String COVERAGE = "coverage";
+    private static final String USAGE = "usage: verify|coverage <packsRoot>";
     private static final String PACK_FILE = "pack.yaml";
 
     private ContentCli() {
@@ -26,10 +27,19 @@ public final class ContentCli {
     }
 
     static void run(String[] args) {
-        if (args.length != 2 || !VERIFY.equals(args[0])) {
+        if (args.length != 2) {
             throw new IllegalArgumentException(USAGE);
         }
-        VerificationReport report = verify(Path.of(args[1]), new SnippetRunner());
+        Path packsRoot = Path.of(args[1]);
+        switch (args[0]) {
+            case VERIFY -> verifyAndReport(packsRoot);
+            case COVERAGE -> System.out.print(coverage(packsRoot));
+            default -> throw new IllegalArgumentException(USAGE);
+        }
+    }
+
+    private static void verifyAndReport(Path packsRoot) {
+        VerificationReport report = verify(packsRoot, new SnippetRunner());
         System.out.println(report.summary());
         if (!report.isSuccess()) {
             throw new InvalidContentException(report.failures());
@@ -37,10 +47,18 @@ public final class ContentCli {
     }
 
     static VerificationReport verify(Path packsRoot, SnippetRunner runner) {
-        TopicGraph topics = new TopicMapLoader().load(packsRoot);
-        ContentPackLoader loader = new ContentPackLoader();
-        List<ContentPack> packs = packDirectories(packsRoot).stream().map(dir -> loader.load(dir, topics)).toList();
+        List<ContentPack> packs = loadPacks(packsRoot, new TopicMapLoader().load(packsRoot));
         return new ContentVerifier(runner, Runtime.getRuntime().availableProcessors()).verify(packs);
+    }
+
+    static String coverage(Path packsRoot) {
+        TopicGraph topics = new TopicMapLoader().load(packsRoot);
+        return CoverageReport.render(topics, loadPacks(packsRoot, topics));
+    }
+
+    private static List<ContentPack> loadPacks(Path packsRoot, TopicGraph topics) {
+        ContentPackLoader loader = new ContentPackLoader();
+        return packDirectories(packsRoot).stream().map(dir -> loader.load(dir, topics)).toList();
     }
 
     private static List<Path> packDirectories(Path packsRoot) {

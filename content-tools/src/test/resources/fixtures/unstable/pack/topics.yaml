@@ -5,3 +5,4 @@ topics:
   - id: core.types
     title: Types
     island: shore
+    keyPoints: [Sample point]

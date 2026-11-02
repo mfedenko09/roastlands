@@ -45,6 +45,7 @@ final class QuestionParser {
         checkTopic();
         checkId();
         checkDifficulty();
+        checkKeyPoint();
         requireText("prompt", entry.prompt());
         checkExplanation();
         checkReference();
@@ -58,7 +59,7 @@ final class QuestionParser {
     private void checkTopic() {
         if (isBlank(entry.topic())) {
             reasons.add("topic is required");
-        } else if (!context.knownTopics().contains(entry.topic())) {
+        } else if (!context.keyPointCounts().containsKey(entry.topic())) {
             reasons.add("unknown topic \"" + entry.topic() + "\"");
         } else if (!entry.topic().equals(context.fileTopic())) {
             reasons.add("topic must match the file name \"" + context.fileTopic() + "\"");
@@ -84,6 +85,19 @@ final class QuestionParser {
             reasons.add("difficulty is required");
         } else if (difficulty < MIN_DIFFICULTY || difficulty > MAX_DIFFICULTY) {
             reasons.add("difficulty must be 1, 2 or 3");
+        }
+    }
+
+    private void checkKeyPoint() {
+        Integer keyPoint = entry.keyPoint();
+        if (keyPoint == null) {
+            reasons.add("keyPoint is required");
+            return;
+        }
+        Integer count = context.keyPointCounts().get(entry.topic());
+        if (count != null && (keyPoint < 0 || keyPoint >= count)) {
+            reasons.add("keyPoint " + keyPoint + " does not exist, topic \"" + entry.topic() + "\" has "
+                    + count + " key points");
         }
     }
 
@@ -290,6 +304,7 @@ final class QuestionParser {
                 .topic(entry.topic())
                 .type(type)
                 .difficulty(entry.difficulty())
+                .keyPoint(entry.keyPoint())
                 .prompt(entry.prompt())
                 .code(entry.code())
                 .options(options)

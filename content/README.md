@@ -22,6 +22,7 @@ A question file is a YAML list of questions.
 | `topic` | yes | must exist in the topic map and equal the file name |
 | `type` | yes | `CODE_OUTPUT`, `SINGLE_CHOICE`, `MULTI_CHOICE`, `TRUE_FALSE` |
 | `difficulty` | yes | 1 (junior) to 3 (senior interview) |
+| `keyPoint` | yes | index of the key point in the topic's `keyPoints` list, the one this question tests |
 | `prompt` | yes | the question text |
 | `code` | for `CODE_OUTPUT` | a full compilation unit with `public class Main` and `main`, imports visible |
 | `options` | not for `TRUE_FALSE` | 2 to 5 different options |
@@ -51,6 +52,7 @@ verifier also rejects a question where another option matches the real outcome.
   topic: core.types
   type: CODE_OUTPUT
   difficulty: 1
+  keyPoint: 0
   prompt: What does this code print?
   code: |
     public class Main {
@@ -80,6 +82,7 @@ verifier also rejects a question where another option matches the real outcome.
   topic: core.strings
   type: SINGLE_CHOICE
   difficulty: 1
+  keyPoint: 2
   prompt: Why is building a long text with s += part in a loop slow?
   options:
     - Each += creates a new String and copies all characters collected so far
@@ -98,6 +101,7 @@ verifier also rejects a question where another option matches the real outcome.
   topic: core.exceptions
   type: MULTI_CHOICE
   difficulty: 1
+  keyPoint: 0
   prompt: Which of these exception classes are checked exceptions?
   options:
     - java.io.IOException
@@ -118,6 +122,7 @@ No `options`.
   topic: core.object-contract
   type: TRUE_FALSE
   difficulty: 1
+  keyPoint: 0
   prompt: >-
     True or false: if two objects have the same hashCode(), then equals() must return true for them.
   correct: false
@@ -140,7 +145,14 @@ It fails when:
 
 Every failure is one line `<file>:<question id>: <reason>`, and all failures are listed.
 
-Rules for authors, which the verifier cannot check:
+## Coverage
+
+`./gradlew :content-tools:contentCoverage` prints, per topic, the question count, every key point with the ids of the
+questions that cover it, and then the uncovered key points. It is a report only and never fails.
+
+## Rules for authors
+
+These rules cannot be checked by the verifier:
 
 - Do not rely on unspecified order, for example the iteration order of `HashMap` or `HashSet`. It can differ between
   JDK versions.

@@ -7,6 +7,7 @@ record QuestionEntry(
         String topic,
         String type,
         Integer difficulty,
+        Integer keyPoint,
         String prompt,
         String code,
         JsonNode options,

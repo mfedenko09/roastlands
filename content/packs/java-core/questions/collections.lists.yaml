@@ -2,6 +2,7 @@
   topic: collections.lists
   type: CODE_OUTPUT
   difficulty: 2
+  keyPoint: 0
   prompt: What does this code print?
   code: |
     import java.util.ArrayList;
@@ -30,6 +31,7 @@
   topic: collections.lists
   type: CODE_OUTPUT
   difficulty: 2
+  keyPoint: 2
   prompt: What does this code do?
   code: |
     import java.util.Arrays;
