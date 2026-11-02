@@ -26,7 +26,8 @@ class JavaCoreQuestionsTests {
     private static final int RARE_LEVEL_DIVISOR = 6;
 
     private static final Set<String> FINISHED_TOPICS = Set.of(
-            "core.nested-classes", "core.modern-types", "generics.basics", "generics.wildcards");
+            "core.nested-classes", "core.modern-types", "generics.basics", "generics.wildcards",
+            "collections.lists", "collections.hashing");
 
     private final TopicGraph topics = new TopicMapLoader().load(PACKS_ROOT);
 
