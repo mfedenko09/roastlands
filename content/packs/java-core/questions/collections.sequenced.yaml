@@ -1,0 +1,162 @@
+- id: collections.sequenced.list-first-last
+  topic: collections.sequenced
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 0
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Integer> numbers = new ArrayList<>(List.of(1, 2, 3));
+            System.out.println(numbers.getFirst());
+            numbers.addFirst(0);
+            System.out.println(numbers.getLast());
+            System.out.println(numbers);
+        }
+    }
+  options:
+    - output: "1\n3\n[0, 1, 2, 3]"
+    - output: "1\n3\n[1, 2, 3, 0]"
+    - output: "0\n3\n[0, 1, 2, 3]"
+    - compileError: true
+  correct: 0
+  explanation: >-
+    Java 21 gives List the methods getFirst, getLast, addFirst and addLast, so no index arithmetic is needed.
+    addFirst puts 0 at the head of the list.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/SequencedCollection.html
+
+- id: collections.sequenced.get-first-empty
+  topic: collections.sequenced
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 0
+  prompt: What happens with this code?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>();
+            System.out.println(names.getFirst());
+        }
+    }
+  options:
+    - output: "null"
+    - exception: java.util.NoSuchElementException
+    - exception: java.lang.IndexOutOfBoundsException
+    - compileError: true
+  correct: 1
+  explanation: >-
+    getFirst on an empty collection throws NoSuchElementException, like Deque.getFirst. It does not return null,
+    and it does not use the index exception of get(0).
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/SequencedCollection.html#getFirst()
+
+- id: collections.sequenced.reversed-view
+  topic: collections.sequenced
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 1
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Integer> numbers = new ArrayList<>(List.of(1, 2));
+            List<Integer> backwards = numbers.reversed();
+            numbers.add(3);
+            System.out.println(backwards);
+        }
+    }
+  options:
+    - output: "[3, 2, 1]"
+    - output: "[2, 1]"
+    - output: "[1, 2, 3]"
+    - exception: java.util.ConcurrentModificationException
+  correct: 0
+  explanation: >-
+    reversed() does not copy the elements. It returns a live view of the same list in the opposite order,
+    so the later add() is visible through it.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/SequencedCollection.html#reversed()
+
+- id: collections.sequenced.linked-hash-map-ends
+  topic: collections.sequenced
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.LinkedHashMap;
+
+    public class Main {
+        public static void main(String[] args) {
+            LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
+            map.put("a", 1);
+            map.put("b", 2);
+            map.put("c", 3);
+            map.putFirst("z", 0);
+            map.pollLastEntry();
+            System.out.println(map);
+            System.out.println(map.firstEntry());
+        }
+    }
+  options:
+    - output: "{z=0, a=1, b=2}\nz=0"
+    - output: "{a=1, b=2, z=0}\nz=0"
+    - output: "{z=0, a=1, b=2, c=3}\na=1"
+    - compileError: true
+  correct: 0
+  explanation: >-
+    Java 21 added putFirst, putLast, pollFirstEntry and pollLastEntry to the sequenced maps. putFirst moves "z" to
+    the front, pollLastEntry removes "c" from the end, and firstEntry shows the first entry.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/SequencedMap.html
+
+- id: collections.sequenced.which-are-sequenced
+  topic: collections.sequenced
+  type: MULTI_CHOICE
+  difficulty: 2
+  keyPoint: 3
+  prompt: Which of these classes implement SequencedCollection in Java 21?
+  options:
+    - ArrayList
+    - LinkedHashSet
+    - TreeSet
+    - HashSet
+    - ArrayDeque
+  correct: [0, 1, 2, 4]
+  explanation: >-
+    Lists, deques, LinkedHashSet and the sorted sets (through SequencedSet) have a defined order from the first to
+    the last element. HashSet has no defined order, so it is not sequenced.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/SequencedCollection.html
+
+- id: collections.sequenced.static-type-matters
+  topic: collections.sequenced
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 3
+  prompt: What happens with this code?
+  code: |
+    import java.util.LinkedHashSet;
+    import java.util.List;
+    import java.util.Set;
+
+    public class Main {
+        public static void main(String[] args) {
+            Set<String> names = new LinkedHashSet<>(List.of("a", "b"));
+            System.out.println(names.getFirst());
+        }
+    }
+  options:
+    - output: "a"
+    - exception: java.lang.UnsupportedOperationException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    The object is a LinkedHashSet, but the variable has the type Set, and Set is not a SequencedCollection. The
+    compiler only knows the methods of the variable type. Declare it as SequencedSet<String> or LinkedHashSet<String>.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/SequencedSet.html

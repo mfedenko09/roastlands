@@ -27,7 +27,8 @@ class JavaCoreQuestionsTests {
 
     private static final Set<String> FINISHED_TOPICS = Set.of(
             "core.nested-classes", "core.modern-types", "generics.basics", "generics.wildcards",
-            "collections.lists", "collections.hashing", "collections.sorted", "collections.iteration");
+            "collections.lists", "collections.hashing", "collections.sorted", "collections.iteration",
+            "collections.immutable", "collections.queues", "collections.sequenced");
 
     private final TopicGraph topics = new TopicMapLoader().load(PACKS_ROOT);
 

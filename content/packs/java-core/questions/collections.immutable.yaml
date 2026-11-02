@@ -1,0 +1,150 @@
+- id: collections.immutable.contains-null
+  topic: collections.immutable
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 0
+  prompt: What does this code do?
+  code: |
+    import java.util.Arrays;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            System.out.println(Arrays.asList(1).contains(null));
+            System.out.println(List.of(1).contains(null));
+        }
+    }
+  options:
+    - output: "false\nfalse"
+    - exception: java.lang.NullPointerException
+      output: "false"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    The collections from List.of reject null everywhere, not only when they are created: contains(null) throws
+    NullPointerException too. Arrays.asList answers false for the same call.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html#of(E)
+
+- id: collections.immutable.set-of-duplicates
+  topic: collections.immutable
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 1
+  prompt: What happens with this code?
+  code: |
+    import java.util.Set;
+
+    public class Main {
+        public static void main(String[] args) {
+            Set<String> names = Set.of("ann", "bob", "ann");
+            System.out.println(names.size());
+        }
+    }
+  options:
+    - output: "2"
+    - output: "3"
+    - exception: java.lang.IllegalArgumentException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    Set.of treats a duplicate element as a programming error and throws IllegalArgumentException when the set is
+    created. Map.of does the same for duplicate keys. Use new HashSet<>(...) when duplicates are possible.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html#of(E...)
+
+- id: collections.immutable.set-of-order
+  topic: collections.immutable
+  type: TRUE_FALSE
+  difficulty: 1
+  keyPoint: 1
+  prompt: >-
+    True or false: Set.of("a", "b", "c") always iterates in the order of its arguments.
+  correct: false
+  explanation: >-
+    The iteration order of Set.of and Map.of is not specified, and it can change from one JVM run to the next.
+    Use LinkedHashSet when the order matters.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html
+
+- id: collections.immutable.view-versus-copy
+  topic: collections.immutable
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.Collections;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> base = new ArrayList<>(List.of("a", "b"));
+            List<String> view = Collections.unmodifiableList(base);
+            List<String> copy = List.copyOf(base);
+            base.add("c");
+            System.out.println(view.size());
+            System.out.println(copy.size());
+        }
+    }
+  options:
+    - output: "3\n2"
+    - output: "2\n2"
+    - output: "3\n3"
+    - output: "2\n3"
+  correct: 0
+  explanation: >-
+    unmodifiableList only blocks changes through the view, and it shows every later change of the base list.
+    List.copyOf makes an independent immutable copy at the moment of the call.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Collections.html
+
+- id: collections.immutable.remove-absent-element
+  topic: collections.immutable
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What happens with this code?
+  code: |
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Integer> numbers = List.of(1, 2);
+            System.out.println(numbers.remove(Integer.valueOf(9)));
+        }
+    }
+  options:
+    - output: "false"
+    - output: "true"
+    - exception: java.lang.UnsupportedOperationException
+    - exception: java.util.NoSuchElementException
+  correct: 2
+  explanation: >-
+    Every mutator of an immutable collection throws UnsupportedOperationException at once, even when the call would
+    change nothing, as here, where 9 is not in the list.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html#of(E...)
+
+- id: collections.immutable.shallow
+  topic: collections.immutable
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 4
+  prompt: What does this code print?
+  code: |
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<StringBuilder> parts = List.of(new StringBuilder("a"));
+            parts.get(0).append("b");
+            System.out.println(parts);
+        }
+    }
+  options:
+    - output: "[ab]"
+    - output: "[a]"
+    - exception: java.lang.UnsupportedOperationException
+    - compileError: true
+  correct: 0
+  explanation: >-
+    The list itself cannot change, but the StringBuilder inside is a normal mutable object. An immutable collection
+    is only shallow immutable.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html#of(E)
