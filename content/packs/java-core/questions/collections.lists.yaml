@@ -56,3 +56,182 @@
     Arrays.asList returns a fixed-size view of the array. set() works and prints [x, b], but add() throws
     UnsupportedOperationException because the size cannot change.
   reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Arrays.html#asList(T...)
+
+- id: collections.lists.linkedlist-get-in-loop
+  topic: collections.lists
+  type: SINGLE_CHOICE
+  difficulty: 1
+  keyPoint: 1
+  prompt: Why is a for loop with list.get(i) usually much slower on a LinkedList than on an ArrayList?
+  options:
+    - LinkedList has no index, so get(i) walks the nodes from one end and the whole loop takes O(n²)
+    - LinkedList copies the whole list on every get(i)
+    - LinkedList.get(i) has to sort the elements first
+    - LinkedList checks every element for null before it returns one
+  correct: 0
+  explanation: >-
+    ArrayList reads an array cell by index in O(1). LinkedList follows the links node by node, so every get(i) costs
+    O(i). Use an iterator or a for-each loop on a LinkedList.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/LinkedList.html
+
+- id: collections.lists.list-cost-statements
+  topic: collections.lists
+  type: MULTI_CHOICE
+  difficulty: 2
+  keyPoint: 1
+  prompt: Which statements about ArrayList and LinkedList are true?
+  options:
+    - ArrayList.get(i) takes constant time
+    - LinkedList.get(i) takes time proportional to the position
+    - ArrayList.add(e) at the end takes amortized constant time
+    - LinkedList stores its elements more compactly than ArrayList
+    - LinkedList.contains(e) is faster than ArrayList.contains(e)
+  correct: [0, 1, 2]
+  explanation: >-
+    ArrayList keeps an array, adds at the end are cheap even with the occasional copy on growth. LinkedList needs
+    two links and a node object per element, so it uses more memory. Both contains() calls scan the list.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html
+
+- id: collections.lists.capacity-is-not-size
+  topic: collections.lists
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 1
+  prompt: What happens with this code?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>(10);
+            names.set(0, "ann");
+            System.out.println(names.size());
+        }
+    }
+  options:
+    - output: "1"
+    - output: "10"
+    - exception: java.lang.IndexOutOfBoundsException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    The number 10 is the initial capacity of the internal array, not the size. The list is still empty, so index 0
+    is out of range. Use add() to put the first element.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ArrayList.html
+
+- id: collections.lists.sublist-is-a-view
+  topic: collections.lists
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Integer> base = new ArrayList<>(List.of(1, 2, 3, 4));
+            List<Integer> part = base.subList(1, 3);
+            part.set(0, 9);
+            part.clear();
+            System.out.println(base);
+        }
+    }
+  options:
+    - output: "[1, 2, 3, 4]"
+    - output: "[1, 9, 3, 4]"
+    - output: "[1, 4]"
+    - output: "[1, 2, 4]"
+  correct: 2
+  explanation: >-
+    subList does not copy: it is a window on the original list. set() changes the base list, and clear() removes
+    the elements 9 and 3 from it. What is left is [1, 4].
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html#subList(int,int)
+
+- id: collections.lists.sublist-after-structural-change
+  topic: collections.lists
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 3
+  prompt: What happens with this code?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Integer> base = new ArrayList<>(List.of(1, 2, 3, 4));
+            List<Integer> part = base.subList(1, 3);
+            base.add(5);
+            System.out.println(part.size());
+        }
+    }
+  options:
+    - output: "2"
+    - output: "3"
+    - exception: java.util.ConcurrentModificationException
+    - exception: java.lang.IndexOutOfBoundsException
+  correct: 2
+  explanation: >-
+    The view remembers the modification count of the base list. After base.add(5) changed the size of the base list,
+    the view is no longer valid, and the next call on it throws ConcurrentModificationException.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html#subList(int,int)
+
+- id: collections.lists.equals-between-list-types
+  topic: collections.lists
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 4
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.Arrays;
+    import java.util.LinkedList;
+    import java.util.List;
+    import java.util.Set;
+
+    public class Main {
+        public static void main(String[] args) {
+            System.out.println(new ArrayList<>(List.of(1, 2)).equals(new LinkedList<>(List.of(1, 2))));
+            System.out.println(Arrays.asList(1, 2).hashCode() == List.of(1, 2).hashCode());
+            System.out.println(List.of(1).equals(Set.of(1)));
+        }
+    }
+  options:
+    - output: "true\ntrue\nfalse"
+    - output: "false\ntrue\nfalse"
+    - output: "true\nfalse\nfalse"
+    - output: "true\ntrue\ntrue"
+  correct: 0
+  explanation: >-
+    List.equals compares the elements in order and does not care about the implementation class, and hashCode
+    follows the same rule. A List is never equal to a Set.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html#equals(java.lang.Object)
+
+- id: collections.lists.equals-with-array-elements
+  topic: collections.lists
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 4
+  prompt: What does this code print?
+  code: |
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<int[]> first = List.of(new int[] {1});
+            List<int[]> second = List.of(new int[] {1});
+            System.out.println(first.equals(second));
+        }
+    }
+  options:
+    - output: "true"
+    - output: "false"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    List.equals calls equals on the elements, and an array uses the identity equals of Object. Two arrays with the
+    same content are two different objects, so the lists are not equal.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html#equals(java.lang.Object)
