@@ -57,3 +57,204 @@
     The raw type switches off the generic checks, so add(42) is accepted and the list is polluted. The compiler
     inserts a cast to String at names.get(0), and that cast fails at run time after "1" was printed.
   reference: JLS §4.12.2
+
+- id: generics.basics.inferred-type-of-mixed-args
+  topic: generics.basics
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 2
+  prompt: What does this code print?
+  code: |
+    public class Main {
+        static <T> T first(T a, T b) {
+            return a;
+        }
+
+        public static void main(String[] args) {
+            System.out.println(first(1, "one").getClass().getSimpleName());
+        }
+    }
+  options:
+    - output: "Integer"
+    - output: "String"
+    - output: "Object"
+    - compileError: true
+  correct: 0
+  explanation: >-
+    The compiler infers T as a common supertype of Integer and String, so the call compiles. Generic code works with
+    the real objects, and getClass() returns the class of the object that was returned: Integer.
+  reference: JLS §18.5.2
+
+- id: generics.basics.inference-fails-for-bound
+  topic: generics.basics
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 2
+  prompt: What happens with this code?
+  code: |
+    public class Main {
+        static <T extends Comparable<T>> T max(T a, T b) {
+            return a.compareTo(b) >= 0 ? a : b;
+        }
+
+        public static void main(String[] args) {
+            System.out.println(max(1, 2.5));
+        }
+    }
+  options:
+    - output: "2.5"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    T must be Comparable to itself. Integer is Comparable<Integer> and Double is Comparable<Double>, so no single T
+    fits both arguments and inference fails at compile time. Two Integers or two Doubles would work.
+  reference: JLS §18.5.1
+
+- id: generics.basics.bridge-method-count
+  topic: generics.basics
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 3
+  prompt: What does this code print?
+  code: |
+    import java.util.Arrays;
+
+    public class Main {
+        static class Box implements Comparable<Box> {
+            @Override
+            public int compareTo(Box other) {
+                return 0;
+            }
+        }
+
+        public static void main(String[] args) {
+            System.out.println(Arrays.stream(Box.class.getDeclaredMethods())
+                    .filter(method -> method.getName().equals("compareTo"))
+                    .count());
+        }
+    }
+  options:
+    - output: "1"
+    - output: "2"
+    - output: "0"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    After erasure, Comparable has compareTo(Object). The compiler adds a synthetic bridge method
+    compareTo(Object) to Box that casts the argument to Box and calls compareTo(Box). So Box has two methods
+    with this name.
+  reference: JLS §15.12.4.5
+
+- id: generics.basics.bridge-method-cast
+  topic: generics.basics
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What happens with this code?
+  code: |
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public class Main {
+        static class Box implements Comparable<Box> {
+            @Override
+            public int compareTo(Box other) {
+                return 0;
+            }
+        }
+
+        public static void main(String[] args) {
+            Comparable comparable = new Box();
+            System.out.println(comparable.compareTo("text"));
+        }
+    }
+  options:
+    - output: "0"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 1
+  explanation: >-
+    Through the raw type the call goes to compareTo(Object), which is the bridge method. The bridge casts the
+    argument to Box, and a String is not a Box.
+  reference: JLS §15.12.4.5
+
+- id: generics.basics.instanceof-parameterized-type
+  topic: generics.basics
+  type: TRUE_FALSE
+  difficulty: 2
+  keyPoint: 4
+  prompt: >-
+    True or false: if obj is declared as Object, the expression obj instanceof List<String> compiles in Java 21.
+  correct: false
+  explanation: >-
+    The type argument String does not exist at run time, so the check cannot tell List<String> from List<Integer>.
+    The compiler rejects it because the cast from Object would be unchecked. obj instanceof List<?> compiles.
+  reference: JLS §15.20.2
+
+- id: generics.basics.no-generic-array-creation
+  topic: generics.basics
+  type: SINGLE_CHOICE
+  difficulty: 2
+  keyPoint: 4
+  prompt: Why does new List<String>[3] not compile?
+  options:
+    - >-
+      An array checks the type of every stored element at run time, and after erasure List<String> cannot be
+      told from List<Integer>
+    - Generic types are always abstract, so they cannot be instantiated
+    - The JVM does not allow arrays of interfaces
+    - Arrays are fixed-size and generic collections are not
+  correct: 0
+  explanation: >-
+    Arrays are reified: they know their element type and throw ArrayStoreException for a wrong element. With erasure
+    that check could not protect List<String>, so the language forbids the creation. List<?>[] is allowed.
+  reference: JLS §15.10.1
+
+- id: generics.basics.what-t-cannot-do
+  topic: generics.basics
+  type: MULTI_CHOICE
+  difficulty: 1
+  keyPoint: 0
+  prompt: >-
+    Inside the class Box<T>, with a parameter Object obj and a field T value, which of these do NOT compile?
+  options:
+    - new T()
+    - T.class
+    - obj instanceof T
+    - (T) obj
+    - value.hashCode()
+  correct: [0, 1, 2]
+  explanation: >-
+    T is erased, so the class has no T at run time: it cannot create an instance, name a class literal or check an
+    instance. The cast (T) obj compiles with an unchecked warning, and value.hashCode() works because T is an Object.
+  reference: JLS §4.6
+
+- id: generics.basics.raw-type-loop-variable
+  topic: generics.basics
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 1
+  prompt: What happens with this code?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    @SuppressWarnings("rawtypes")
+    public class Main {
+        public static void main(String[] args) {
+            List names = new ArrayList<String>();
+            names.add("ann");
+            for (String name : names) {
+                System.out.println(name);
+            }
+        }
+    }
+  options:
+    - output: "ann"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    A raw type drops all generic information, so the elements of a raw List are Objects. The for-each loop cannot
+    assign an Object to a String variable. The new ArrayList<String>() on the right side does not change the type of
+    the variable.
+  reference: JLS §4.8
