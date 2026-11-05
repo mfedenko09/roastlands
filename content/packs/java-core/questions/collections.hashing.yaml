@@ -95,3 +95,154 @@
     HashMap accepts one null key and prints x. Hashtable rejects null keys and null values, so the put on it
     throws NullPointerException before the second println.
   reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Hashtable.html
+
+- id: collections.hashing.spreading-high-bits
+  topic: collections.hashing
+  type: SINGLE_CHOICE
+  difficulty: 2
+  keyPoint: 0
+  prompt: Why does HashMap mix the upper 16 bits of the hash code into the lower bits before it picks a bucket?
+  options:
+    - The bucket index uses only the low bits, so without mixing the high bits would not help to spread the keys
+    - It makes the hash code unique for every key
+    - It lets the map sort the keys by their hash code
+    - It protects the map from keys that return null from hashCode()
+  correct: 0
+  explanation: >-
+    The table size is a power of two, so the index is hash & (n - 1), which uses only the low bits. Keys that differ
+    only in the high bits would collide. The XOR with hash >>> 16 lets those bits take part.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html
+
+- id: collections.hashing.treeification
+  topic: collections.hashing
+  type: TRUE_FALSE
+  difficulty: 2
+  keyPoint: 0
+  prompt: >-
+    True or false: since Java 8, a HashMap can turn a very long chain of colliding keys into a balanced tree,
+    so the worst case of a lookup falls from O(n) to O(log n).
+  correct: true
+  explanation: >-
+    When a bucket gets too many entries and the table is big enough, HashMap replaces the linked list with a red-black
+    tree. The tree is ordered by hash code, and by compareTo when the keys are Comparable.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html
+
+- id: collections.hashing.resize-at-thirteenth
+  topic: collections.hashing
+  type: SINGLE_CHOICE
+  difficulty: 1
+  keyPoint: 1
+  prompt: A new HashMap uses the default capacity 16 and load factor 0.75. What happens when the 13th entry is added?
+  options:
+    - The table doubles to 32 buckets and the entries are redistributed
+    - The table grows by 50 percent to 24 buckets
+    - The map throws an exception because it is full
+    - Nothing happens until the 17th entry
+  correct: 0
+  explanation: >-
+    The threshold is 16 * 0.75 = 12. When the size goes above it, the table doubles, so the capacity is always
+    a power of two.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html
+
+- id: collections.hashing.initial-capacity-for-1000
+  topic: collections.hashing
+  type: SINGLE_CHOICE
+  difficulty: 3
+  keyPoint: 1
+  prompt: >-
+    You will put exactly 1000 entries into a new HashMap and want no resize at all. Which initial capacity
+    argument does that?
+  options:
+    - new HashMap<>(1000)
+    - new HashMap<>(750)
+    - new HashMap<>(1024)
+    - new HashMap<>(1334)
+  correct: 3
+  explanation: >-
+    1000 is rounded up to the capacity 1024, and 1024 * 0.75 = 768, so the map resizes while it fills. The
+    argument must be at least 1000 / 0.75, which is about 1334. It is rounded up to 2048, and the threshold is 1536.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html
+
+- id: collections.hashing.hashset-add-result
+  topic: collections.hashing
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 3
+  prompt: What does this code print?
+  code: |
+    import java.util.HashSet;
+    import java.util.Set;
+
+    public class Main {
+        public static void main(String[] args) {
+            Set<String> names = new HashSet<>();
+            System.out.println(names.add("ann"));
+            System.out.println(names.add("ann"));
+            System.out.println(names.add(null));
+        }
+    }
+  options:
+    - output: "true\nfalse\ntrue"
+    - output: "true\nfalse\nfalse"
+    - output: "true\ntrue\ntrue"
+    - exception: java.lang.NullPointerException
+  correct: 0
+  explanation: >-
+    add() returns true only when the element was not in the set. The second "ann" is equal to the first, so it is
+    rejected. HashSet is backed by a HashMap, which allows one null key.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashSet.html
+
+- id: collections.hashing.hashset-statements
+  topic: collections.hashing
+  type: MULTI_CHOICE
+  difficulty: 2
+  keyPoint: 3
+  prompt: Which statements about HashSet are true?
+  options:
+    - Its elements are the keys of an internal HashMap
+    - It accepts one null element
+    - It keeps the insertion order of its elements
+    - Two elements that are equal but have different hash codes can both be stored if hashCode breaks the contract
+  correct: [0, 1, 3]
+  explanation: >-
+    HashSet delegates to a HashMap and stores a dummy value for every key. The order is not specified (LinkedHashSet
+    keeps insertion order). A bad hashCode sends equal objects to different buckets, so the set cannot see the
+    duplicate.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashSet.html
+
+- id: collections.hashing.same-hash-different-keys
+  topic: collections.hashing
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 0
+  prompt: What does this code print?
+  code: |
+    import java.util.HashMap;
+    import java.util.Map;
+
+    public class Main {
+        record Key(String id) {
+            @Override
+            public int hashCode() {
+                return 1;
+            }
+        }
+
+        public static void main(String[] args) {
+            Map<Key, String> map = new HashMap<>();
+            map.put(new Key("a"), "first");
+            map.put(new Key("b"), "second");
+            System.out.println(map.size());
+            System.out.println(map.get(new Key("b")));
+        }
+    }
+  options:
+    - output: "2\nsecond"
+    - output: "1\nsecond"
+    - output: "2\nnull"
+    - output: "1\nfirst"
+  correct: 0
+  explanation: >-
+    Both keys go to the same bucket, but equals tells them apart, so the bucket holds a chain of two entries. The map
+    stays correct and only gets slower.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html
