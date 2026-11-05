@@ -92,3 +92,178 @@
     The iterator has already moved to the second entry when the first one is removed. The next call to next()
     sees that the map was modified outside the iterator and throws ConcurrentModificationException.
   reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html
+
+- id: collections.iteration.for-each-remove-first
+  topic: collections.iteration
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 0
+  prompt: What happens with this code?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>(List.of("a", "b", "c"));
+            for (String name : names) {
+                if (name.equals("a")) {
+                    names.remove(name);
+                }
+            }
+            System.out.println(names);
+        }
+    }
+  options:
+    - output: "[b, c]"
+    - exception: java.util.ConcurrentModificationException
+    - output: "[a, b, c]"
+    - exception: java.lang.IndexOutOfBoundsException
+  correct: 1
+  explanation: >-
+    The for-each loop uses an iterator. The list changed behind its back, so the next call to next() sees a different
+    modification count and throws ConcurrentModificationException.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ArrayList.html
+
+- id: collections.iteration.iterator-remove
+  topic: collections.iteration
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 1
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.Iterator;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Integer> numbers = new ArrayList<>(List.of(1, 2, 3, 4, 5, 6));
+            Iterator<Integer> iterator = numbers.iterator();
+            while (iterator.hasNext()) {
+                if (iterator.next() % 2 == 0) {
+                    iterator.remove();
+                }
+            }
+            System.out.println(numbers);
+        }
+    }
+  options:
+    - output: "[1, 3, 5]"
+    - output: "[2, 4, 6]"
+    - exception: java.util.ConcurrentModificationException
+    - exception: java.lang.IllegalStateException
+  correct: 0
+  explanation: >-
+    Iterator.remove removes the last element returned by next() and keeps the iterator in sync with the list,
+    so no exception is thrown.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Iterator.html#remove()
+
+- id: collections.iteration.remove-twice
+  topic: collections.iteration
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 1
+  prompt: What happens with this code?
+  code: |
+    import java.util.ArrayList;
+    import java.util.Iterator;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>(List.of("a", "b", "c"));
+            Iterator<String> iterator = names.iterator();
+            iterator.next();
+            iterator.remove();
+            iterator.remove();
+            System.out.println(names);
+        }
+    }
+  options:
+    - output: "[c]"
+    - output: "[b, c]"
+    - exception: java.lang.IllegalStateException
+    - exception: java.util.ConcurrentModificationException
+  correct: 2
+  explanation: >-
+    remove() works once per call to next(). The second remove() has no current element to remove, so the iterator
+    throws IllegalStateException.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Iterator.html#remove()
+
+- id: collections.iteration.fail-fast-guarantee
+  topic: collections.iteration
+  type: TRUE_FALSE
+  difficulty: 2
+  keyPoint: 2
+  prompt: >-
+    True or false: the fail-fast iterators of ArrayList and HashMap always throw ConcurrentModificationException when
+    another thread changes the collection during the iteration.
+  correct: false
+  explanation: >-
+    Fail-fast is a best-effort check of a modification counter, done without synchronization. Without it
+    the other thread's change may not be seen, so a program must not depend on the exception for correctness.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ArrayList.html
+
+- id: collections.iteration.copy-on-write-snapshot
+  topic: collections.iteration
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.List;
+    import java.util.concurrent.CopyOnWriteArrayList;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> letters = new CopyOnWriteArrayList<>(List.of("a", "b"));
+            for (String letter : letters) {
+                letters.add(letter + "!");
+            }
+            System.out.println(letters);
+        }
+    }
+  options:
+    - output: "[a, b, a!, b!]"
+    - output: "[a, b]"
+    - exception: java.util.ConcurrentModificationException
+    - exception: java.lang.UnsupportedOperationException
+  correct: 0
+  explanation: >-
+    The iterator of CopyOnWriteArrayList works on a snapshot taken when the loop starts. It never throws
+    ConcurrentModificationException and does not see the new elements, while each add() copies the array.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/CopyOnWriteArrayList.html
+
+- id: collections.iteration.list-iterator-backwards-set
+  topic: collections.iteration
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.ListIterator;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> letters = new ArrayList<>(List.of("a", "b", "c"));
+            ListIterator<String> iterator = letters.listIterator(letters.size());
+            while (iterator.hasPrevious()) {
+                String letter = iterator.previous();
+                iterator.set(letter.toUpperCase());
+            }
+            System.out.println(letters);
+        }
+    }
+  options:
+    - output: "[A, B, C]"
+    - output: "[a, b, c]"
+    - output: "[C, B, A]"
+    - exception: java.lang.IllegalStateException
+  correct: 0
+  explanation: >-
+    A ListIterator can go backwards, and set() replaces the element returned by the last call to previous() or next().
+    The change is made in the list itself, and the order does not change.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ListIterator.html

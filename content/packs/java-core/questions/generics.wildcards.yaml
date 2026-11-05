@@ -1,0 +1,227 @@
+- id: generics.wildcards.list-is-invariant
+  topic: generics.wildcards
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 0
+  prompt: What happens with this code?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Integer> ints = new ArrayList<>();
+            List<Number> numbers = ints;
+            System.out.println(numbers.size());
+        }
+    }
+  options:
+    - output: "0"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    Generic types are invariant. If a List<Integer> could be used as a List<Number>, the code could add a Double to
+    it. So the compiler rejects the assignment.
+  reference: JLS §4.10.2
+
+- id: generics.wildcards.array-vs-list-subtyping
+  topic: generics.wildcards
+  type: TRUE_FALSE
+  difficulty: 1
+  keyPoint: 0
+  prompt: >-
+    True or false: Integer[] is a subtype of Number[], but List<Integer> is not a subtype of List<Number>.
+  correct: true
+  explanation: >-
+    Arrays are covariant, generic types are invariant. The array rule is checked at run time, the generic rule at
+    compile time.
+  reference: JLS §4.10.3
+
+- id: generics.wildcards.array-store-exception
+  topic: generics.wildcards
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 1
+  prompt: What happens with this code?
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            Number[] numbers = new Integer[1];
+            numbers[0] = 1.5;
+            System.out.println("stored");
+        }
+    }
+  options:
+    - output: "stored"
+    - exception: java.lang.ArrayStoreException
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 1
+  explanation: >-
+    The code compiles because a Double is a Number. At run time the array remembers that it really holds Integers
+    and refuses the Double with ArrayStoreException.
+  reference: JLS §10.5
+
+- id: generics.wildcards.pecs-signature
+  topic: generics.wildcards
+  type: SINGLE_CHOICE
+  difficulty: 2
+  keyPoint: 2
+  prompt: >-
+    A method copies Integer values from one list to another. Which signature follows PECS and accepts the most
+    callers?
+  options:
+    - void copy(List<? extends Integer> source, List<? super Integer> target)
+    - void copy(List<? super Integer> source, List<? extends Integer> target)
+    - void copy(List<Integer> source, List<Integer> target)
+    - void copy(List<? extends Integer> source, List<? extends Integer> target)
+  correct: 0
+  explanation: >-
+    The source produces Integers, so it is "extends". The target consumes Integers, so it is "super": it may be
+    a List<Number> or List<Object>. The last option cannot add anything to the target.
+  reference: https://docs.oracle.com/javase/tutorial/java/generics/wildcards.html
+
+- id: generics.wildcards.extends-producer-sum
+  topic: generics.wildcards
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.List;
+
+    public class Main {
+        static double sum(List<? extends Number> numbers) {
+            double total = 0;
+            for (Number number : numbers) {
+                total += number.doubleValue();
+            }
+            return total;
+        }
+
+        public static void main(String[] args) {
+            System.out.println(sum(List.of(1, 2)));
+            System.out.println(sum(List.of(1.5)));
+        }
+    }
+  options:
+    - output: "3.0\n1.5"
+    - output: "3\n1.5"
+    - compileError: true
+  correct: 0
+  explanation: >-
+    List<? extends Number> accepts a list of any Number subtype, so both calls compile. The method returns a double,
+    so 3 is printed as 3.0.
+  reference: https://docs.oracle.com/javase/tutorial/java/generics/upperBounded.html
+
+- id: generics.wildcards.cannot-add-to-extends
+  topic: generics.wildcards
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What happens with this code?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<? extends Number> numbers = new ArrayList<Integer>();
+            numbers.add(1);
+            System.out.println(numbers.size());
+        }
+    }
+  options:
+    - output: "1"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    The variable may point to a List<Integer>, a List<Double> or any other list of a Number subtype. The compiler
+    does not know which one, so it allows no add() except for null.
+  reference: JLS §4.5.1
+
+- id: generics.wildcards.super-read-gives-object
+  topic: generics.wildcards
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<? super Integer> list = new ArrayList<Number>();
+            list.add(5);
+            Object first = list.get(0);
+            System.out.println(first);
+        }
+    }
+  options:
+    - output: "5"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 0
+  explanation: >-
+    List<? super Integer> accepts an Integer in add(). What comes out of get() is only known to be an Object,
+    so reading into Object works. Reading into Integer or Number would not compile.
+  reference: https://docs.oracle.com/javase/tutorial/java/generics/lowerBounded.html
+
+- id: generics.wildcards.capture-helper
+  topic: generics.wildcards
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 4
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        static void swapFirstTwo(List<?> list) {
+            swapHelper(list);
+        }
+
+        private static <T> void swapHelper(List<T> list) {
+            T first = list.get(0);
+            list.set(0, list.get(1));
+            list.set(1, first);
+        }
+
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>(List.of("a", "b"));
+            swapFirstTwo(names);
+            System.out.println(names);
+        }
+    }
+  options:
+    - output: "[b, a]"
+    - output: "[a, b]"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 0
+  explanation: >-
+    The compiler captures the unknown ? of List<?> as a type variable and passes it to swapHelper, where it is
+    named T. The helper can then read and write the same type. This is the standard way to work with a wildcard type.
+  reference: JLS §5.1.10
+
+- id: generics.wildcards.why-set-with-wildcard-fails
+  topic: generics.wildcards
+  type: SINGLE_CHOICE
+  difficulty: 3
+  keyPoint: 4
+  prompt: >-
+    With List<?> list, why does list.set(0, list.get(1)) not compile?
+  options:
+    - Each use of ? is captured as a different unknown type, so the compiler cannot prove that get(1) fits set(0, ...)
+    - List<?> is read-only, so every method that changes it is removed
+    - The index 1 may not exist, and the compiler checks the size
+    - A wildcard type has no methods with parameters
+  correct: 0
+  explanation: >-
+    The two calls on list each get their own capture type (capture#1 and capture#2). A value of capture#2 cannot be
+    passed where capture#1 is expected. A generic helper method gives both calls the same type T.
+  reference: JLS §5.1.10

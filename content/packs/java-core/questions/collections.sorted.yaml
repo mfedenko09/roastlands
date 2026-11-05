@@ -1,0 +1,271 @@
+- id: collections.sorted.treeset-uses-comparator-not-equals
+  topic: collections.sorted
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 0
+  prompt: What does this code print?
+  code: |
+    import java.util.Set;
+    import java.util.TreeSet;
+
+    public class Main {
+        public static void main(String[] args) {
+            Set<String> names = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+            names.add("ann");
+            names.add("ANN");
+            System.out.println(names.size());
+            System.out.println(names.contains("Ann"));
+        }
+    }
+  options:
+    - output: "1\ntrue"
+    - output: "2\ntrue"
+    - output: "2\nfalse"
+    - output: "1\nfalse"
+  correct: 0
+  explanation: >-
+    A TreeSet decides whether an element is present with the comparator, not with equals. "ann", "ANN" and "Ann"
+    compare as 0, so they are the same element.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/TreeSet.html
+
+- id: collections.sorted.treemap-null-key
+  topic: collections.sorted
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 0
+  prompt: What happens with this code?
+  code: |
+    import java.util.Map;
+    import java.util.TreeMap;
+
+    public class Main {
+        public static void main(String[] args) {
+            Map<String, String> map = new TreeMap<>();
+            map.put("a", "x");
+            map.put(null, "y");
+            System.out.println(map.size());
+        }
+    }
+  options:
+    - output: "2"
+    - output: "1"
+    - exception: java.lang.NullPointerException
+    - compileError: true
+  correct: 2
+  explanation: >-
+    The natural ordering calls compareTo on the key, and null cannot be compared. HashMap allows one null key,
+    but a TreeMap without a null-friendly comparator does not.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/TreeMap.html
+
+- id: collections.sorted.not-comparable
+  topic: collections.sorted
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 0
+  prompt: What happens with this code?
+  code: |
+    import java.util.Set;
+    import java.util.TreeSet;
+
+    public class Main {
+        static class Plain {
+        }
+
+        public static void main(String[] args) {
+            Set<Plain> items = new TreeSet<>();
+            items.add(new Plain());
+            System.out.println(items.size());
+        }
+    }
+  options:
+    - output: "1"
+    - exception: java.lang.ClassCastException
+    - exception: java.lang.IllegalArgumentException
+    - compileError: true
+  correct: 1
+  explanation: >-
+    Plain does not implement Comparable and no comparator was given, so the code compiles. Already the first add()
+    casts the element to Comparable and fails with ClassCastException.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/TreeSet.html
+
+- id: collections.sorted.inconsistent-compare-to
+  topic: collections.sorted
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 1
+  prompt: What does this code print?
+  code: |
+    import java.util.Set;
+    import java.util.TreeSet;
+
+    public class Main {
+        record Person(String name, int age) implements Comparable<Person> {
+            @Override
+            public int compareTo(Person other) {
+                return Integer.compare(age, other.age);
+            }
+        }
+
+        public static void main(String[] args) {
+            Set<Person> people = new TreeSet<>();
+            people.add(new Person("Ann", 30));
+            people.add(new Person("Bob", 30));
+            System.out.println(people.size());
+        }
+    }
+  options:
+    - output: "2"
+    - output: "1"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 1
+  explanation: >-
+    compareTo looks only at the age, so Ann and Bob compare as 0 and the TreeSet treats Bob as a duplicate of Ann.
+    Their records are not equal, so compareTo is inconsistent with equals, and Bob is silently dropped.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Comparable.html
+
+- id: collections.sorted.then-comparing
+  topic: collections.sorted
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayList;
+    import java.util.Comparator;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> words = new ArrayList<>(List.of("pear", "fig", "apple", "kiwi", "date"));
+            words.sort(Comparator.comparing(String::length).thenComparing(Comparator.naturalOrder()));
+            System.out.println(words);
+        }
+    }
+  options:
+    - output: "[fig, date, kiwi, pear, apple]"
+    - output: "[apple, date, fig, kiwi, pear]"
+    - output: "[fig, pear, kiwi, date, apple]"
+    - output: "[apple, pear, kiwi, date, fig]"
+  correct: 0
+  explanation: >-
+    The words are sorted by length first. Words of the same length are then sorted alphabetically, so date, kiwi and
+    pear come in this order.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Comparator.html
+
+- id: collections.sorted.reversed-lambda-inference
+  topic: collections.sorted
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 2
+  prompt: What happens with this code?
+  code: |
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.Comparator;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> words = new ArrayList<>(List.of("bb", "a", "ccc"));
+            words.sort(Comparator.comparing(word -> word.length()).reversed());
+            System.out.println(words);
+        }
+    }
+  options:
+    - output: "[ccc, bb, a]"
+    - output: "[a, bb, ccc]"
+    - exception: java.lang.ClassCastException
+    - compileError: true
+  correct: 3
+  explanation: >-
+    In the chain comparing(...).reversed() there is no target type for comparing, so T is inferred as Object and
+    word.length() does not compile. Use a method reference String::length or write Comparator.comparing(
+    (String word) -> word.length()).
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Comparator.html
+
+- id: collections.sorted.floor-ceiling
+  topic: collections.sorted
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What does this code print?
+  code: |
+    import java.util.TreeSet;
+
+    public class Main {
+        public static void main(String[] args) {
+            TreeSet<Integer> values = new TreeSet<>(java.util.List.of(10, 20, 30));
+            System.out.println(values.floor(25));
+            System.out.println(values.ceiling(25));
+            System.out.println(values.lower(20));
+            System.out.println(values.higher(30));
+        }
+    }
+  options:
+    - output: "20\n30\n10\nnull"
+    - output: "20\n30\n20\n30"
+    - output: "30\n20\n10\nnull"
+    - exception: java.util.NoSuchElementException
+  correct: 0
+  explanation: >-
+    floor is the greatest element less than or equal to the argument, ceiling the least element greater than or
+    equal. lower and higher are strict. When there is no such element, the methods return null.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/TreeSet.html
+
+- id: collections.sorted.headmap-tailmap
+  topic: collections.sorted
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What does this code print?
+  code: |
+    import java.util.TreeMap;
+
+    public class Main {
+        public static void main(String[] args) {
+            TreeMap<Integer, String> map = new TreeMap<>();
+            map.put(1, "a");
+            map.put(2, "b");
+            map.put(3, "c");
+            map.put(4, "d");
+            System.out.println(map.headMap(3));
+            System.out.println(map.tailMap(3));
+        }
+    }
+  options:
+    - output: "{1=a, 2=b}\n{3=c, 4=d}"
+    - output: "{1=a, 2=b, 3=c}\n{3=c, 4=d}"
+    - output: "{1=a, 2=b}\n{4=d}"
+    - output: "{1=a, 2=b, 3=c}\n{4=d}"
+  correct: 0
+  explanation: >-
+    headMap(to) excludes the key "to" and tailMap(from) includes the key "from". The other forms with a boolean flag
+    can change this. Both results are views of the original map.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/TreeMap.html
+
+- id: collections.sorted.subtraction-overflow
+  topic: collections.sorted
+  type: CODE_OUTPUT
+  difficulty: 3
+  keyPoint: 4
+  prompt: What does this code print?
+  code: |
+    import java.util.Arrays;
+
+    public class Main {
+        public static void main(String[] args) {
+            Integer[] values = {-1, Integer.MAX_VALUE};
+            Arrays.sort(values, (a, b) -> a - b);
+            System.out.println(Arrays.toString(values));
+        }
+    }
+  options:
+    - output: "[-1, 2147483647]"
+    - output: "[2147483647, -1]"
+    - exception: java.lang.ArithmeticException
+    - compileError: true
+  correct: 1
+  explanation: >-
+    Comparing MAX_VALUE with -1 gives MAX_VALUE - (-1), which overflows to a negative number. The sort believes
+    that MAX_VALUE is smaller and swaps the elements. Use Integer.compare(a, b) instead of subtraction.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html#compare(int,int)

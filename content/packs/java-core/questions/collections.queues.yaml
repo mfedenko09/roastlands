@@ -1,0 +1,173 @@
+- id: collections.queues.stack-choice
+  topic: collections.queues
+  type: SINGLE_CHOICE
+  difficulty: 1
+  keyPoint: 0
+  prompt: Which class does the Java documentation recommend for a stack (LIFO) in new code?
+  options:
+    - ArrayDeque, used through push, pop and peek
+    - Stack, because the name says what it is
+    - Vector, because it is synchronized
+    - LinkedList, because it has push and pop
+  correct: 0
+  explanation: >-
+    Stack extends Vector, so it is synchronized and exposes list methods like get(i). The Deque interface offers
+    a better LIFO API, and ArrayDeque is the fast implementation. LinkedList also works but is slower and uses
+    more memory.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Deque.html
+
+- id: collections.queues.deque-as-stack
+  topic: collections.queues
+  type: CODE_OUTPUT
+  difficulty: 1
+  keyPoint: 0
+  prompt: What does this code print?
+  code: |
+    import java.util.ArrayDeque;
+    import java.util.Deque;
+
+    public class Main {
+        public static void main(String[] args) {
+            Deque<Integer> stack = new ArrayDeque<>();
+            stack.push(1);
+            stack.push(2);
+            stack.push(3);
+            System.out.println(stack.pop());
+            System.out.println(stack.peek());
+            System.out.println(stack);
+        }
+    }
+  options:
+    - output: "3\n2\n[2, 1]"
+    - output: "1\n2\n[2, 3]"
+    - output: "3\n2\n[1, 2]"
+    - output: "3\n1\n[1, 2]"
+  correct: 0
+  explanation: >-
+    push adds to the head of the deque and pop removes from the head, so the last pushed element comes out first.
+    The elements are printed from the head to the tail.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Deque.html#push(E)
+
+- id: collections.queues.null-elements
+  topic: collections.queues
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 1
+  prompt: What does this code do?
+  code: |
+    import java.util.ArrayDeque;
+    import java.util.Deque;
+    import java.util.LinkedList;
+
+    public class Main {
+        public static void main(String[] args) {
+            Deque<String> linked = new LinkedList<>();
+            System.out.println(linked.add(null));
+            Deque<String> array = new ArrayDeque<>();
+            System.out.println(array.add(null));
+        }
+    }
+  options:
+    - output: "true\ntrue"
+    - exception: java.lang.NullPointerException
+      output: "true"
+    - compileError: true
+  correct: 1
+  explanation: >-
+    LinkedList accepts null elements. ArrayDeque forbids them, because poll() and peek() return null to say
+    "the queue is empty", and a stored null would be confusing.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ArrayDeque.html
+
+- id: collections.queues.priority-queue-print-order
+  topic: collections.queues
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 2
+  prompt: What does this code print?
+  code: |
+    import java.util.PriorityQueue;
+    import java.util.Queue;
+
+    public class Main {
+        public static void main(String[] args) {
+            Queue<Integer> queue = new PriorityQueue<>();
+            for (int value : new int[] {5, 1, 4, 2, 3}) {
+                queue.add(value);
+            }
+            System.out.println(queue);
+        }
+    }
+  options:
+    - output: "[1, 2, 3, 4, 5]"
+    - output: "[1, 2, 4, 5, 3]"
+    - output: "[5, 1, 4, 2, 3]"
+    - output: "[5, 4, 3, 2, 1]"
+  correct: 1
+  explanation: >-
+    PriorityQueue is a binary heap stored in an array, and only the head is guaranteed to be the smallest. The
+    iterator and toString show the array order of the heap, not the sorted order. Only repeated poll() gives
+    1, 2, 3, 4, 5.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/PriorityQueue.html
+
+- id: collections.queues.offer-versus-add
+  topic: collections.queues
+  type: CODE_OUTPUT
+  difficulty: 2
+  keyPoint: 3
+  prompt: What does this code do?
+  code: |
+    import java.util.Queue;
+    import java.util.concurrent.ArrayBlockingQueue;
+
+    public class Main {
+        public static void main(String[] args) {
+            Queue<String> queue = new ArrayBlockingQueue<>(1);
+            queue.add("a");
+            System.out.println(queue.offer("b"));
+            System.out.println(queue.add("c"));
+        }
+    }
+  options:
+    - output: "false\nfalse"
+    - exception: java.lang.IllegalStateException
+      output: "false"
+    - output: "true\ntrue"
+  correct: 1
+  explanation: >-
+    On a full bounded queue, offer returns false, and add throws IllegalStateException. The same pairs exist for
+    the empty queue: poll and peek return null, remove and element throw NoSuchElementException.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Queue.html
+
+- id: collections.queues.empty-queue-methods
+  topic: collections.queues
+  type: MULTI_CHOICE
+  difficulty: 1
+  keyPoint: 3
+  prompt: Which calls throw NoSuchElementException on an empty ArrayDeque used as a Queue?
+  options:
+    - queue.remove()
+    - queue.element()
+    - queue.poll()
+    - queue.peek()
+  correct: [0, 1]
+  explanation: >-
+    remove() and element() are the methods that throw an exception. poll() and peek() are their versions that
+    return null.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Queue.html
+
+- id: collections.queues.priority-queue-cost
+  topic: collections.queues
+  type: SINGLE_CHOICE
+  difficulty: 2
+  keyPoint: 4
+  prompt: What are the costs of offer(e), peek() and poll() on a PriorityQueue with n elements?
+  options:
+    - O(log n), O(1) and O(log n)
+    - O(1), O(1) and O(log n)
+    - O(n), O(1) and O(n)
+    - O(log n), O(log n) and O(log n)
+  correct: 0
+  explanation: >-
+    The queue is a binary heap in an array. The smallest element is always at index 0, so peek is constant. offer
+    and poll move one element up or down the tree of height log n.
+  reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/PriorityQueue.html
